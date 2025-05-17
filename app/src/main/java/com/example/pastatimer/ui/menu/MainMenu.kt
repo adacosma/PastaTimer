@@ -7,9 +7,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun MainMenu() {
+fun MainMenu(navController: NavController) {
 
     Column (
         modifier = Modifier
@@ -25,7 +27,7 @@ fun MainMenu() {
         )
 
         Button(
-            onClick = {},
+            onClick = { navController.navigate("pasta") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
@@ -34,12 +36,12 @@ fun MainMenu() {
         }
 
         Button(
-            onClick = {},
+            onClick = { navController.navigate("sauce") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
         ) {
-            Text("Select Sauces")
+            Text("Select Sauce")
         }
 
         Button(
@@ -57,6 +59,6 @@ fun MainMenu() {
 @Composable
 fun LoginScreenPreview() {
     com.example.pastatimer.ui.theme.PastaTimerTheme {
-        MainMenu()
+        MainMenu(navController = rememberNavController())
     }
 }
