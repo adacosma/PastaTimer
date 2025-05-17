@@ -11,6 +11,8 @@ import com.example.pastatimer.ui.screens.PastaScreen
 import com.example.pastatimer.ui.theme.PastaTimerTheme
 import com.example.pastatimer.PastaTypeEntity
 
+import com.example.pastatimer.ui.login.LogInScreen
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,5 +53,9 @@ val defaultPastaList = listOf(
 fun PastaCountPreview() {
     PastaTimerTheme {
         Text("Pasta Number: ${defaultPastaList.size}")
+    }
+                LogInScreen()
+            }
+        }
     }
 }
