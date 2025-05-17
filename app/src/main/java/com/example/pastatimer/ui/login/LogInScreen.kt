@@ -14,7 +14,7 @@ import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun LogInScreen(navController: NavController) {
-    var email by remember { mutableStateOf("") }
+    var user by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Column (
@@ -32,9 +32,9 @@ fun LogInScreen(navController: NavController) {
         )
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
+            value = user,
+            onValueChange = { user = it },
+            label = { Text("user") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
@@ -59,12 +59,21 @@ fun LogInScreen(navController: NavController) {
             Text("Log In")
         }
 
-        TextButton(
-            onClick = {},
-            modifier = Modifier.padding(top = 12.dp)
+        Row(
+            modifier = Modifier.padding(top = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Don't have an account? Sign Up")
+            Text("Don't have an account?")
+            Spacer(modifier = Modifier.width(4.dp))
+            TextButton(onClick = { navController.navigate("sign up") }) {
+                Text(
+                    text = "Sign Up",
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
+
     }
 }
 
