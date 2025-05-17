@@ -51,7 +51,7 @@ fun LogInScreen(navController: NavController) {
         )
 
         Button(
-            onClick = { navController.navigate("home")},
+            onClick = { navController.navigate("home") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
