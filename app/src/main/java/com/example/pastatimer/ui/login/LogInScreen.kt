@@ -8,9 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+
 
 @Composable
-fun LogInScreen() {
+fun LogInScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -20,6 +23,7 @@ fun LogInScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
+
     ) {
         Text(
             text = "Log In",
@@ -47,7 +51,7 @@ fun LogInScreen() {
         )
 
         Button(
-            onClick = {},
+            onClick = { navController.navigate("home")},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
@@ -68,6 +72,6 @@ fun LogInScreen() {
 @Composable
 fun LoginScreenPreview() {
     com.example.pastatimer.ui.theme.PastaTimerTheme {
-        LogInScreen()
+        LogInScreen(navController = rememberNavController())
     }
 }
