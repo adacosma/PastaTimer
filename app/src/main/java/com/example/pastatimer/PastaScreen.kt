@@ -15,9 +15,10 @@ import androidx.compose.ui.unit.dp
 import com.example.pastatimer.PastaTypeEntity
 import android.util.Log
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
 
 @Composable
-fun PastaScreen(pastas: List<PastaTypeEntity>) {
+fun PastaScreen(pastas: List<PastaTypeEntity>, navController: NavController) {
     var pageIndex by remember { mutableIntStateOf(0) }
     val itemsPerPage = 6
     val pageCount = (pastas.size + itemsPerPage - 1) / itemsPerPage
@@ -28,6 +29,8 @@ fun PastaScreen(pastas: List<PastaTypeEntity>) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        Spacer(modifier = Modifier.height(15.dp))
+
         Text(
             "🍝 List of pasta types (${pastas.size})",
             style = MaterialTheme.typography.headlineSmall,
@@ -87,6 +90,14 @@ fun PastaScreen(pastas: List<PastaTypeEntity>) {
                 }
             }
         }
+        Button(
+            onClick = { navController.navigate("home") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("⬅ Back to Menu")
+        }
     }
 }
 
@@ -124,17 +135,8 @@ fun PastaCard(pasta: PastaTypeEntity) {
                     contentDescription = pasta.name,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
+                        .height(70.dp)
                 )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("🍝", style = MaterialTheme.typography.headlineLarge)
-                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -148,7 +150,7 @@ fun PastaCard(pasta: PastaTypeEntity) {
                     .fillMaxWidth()
                     .padding(top = 8.dp)
             ) {
-                Text("Start Timer")
+                Text("Start Timer for ${pasta.name}")
             }
         }
     }
