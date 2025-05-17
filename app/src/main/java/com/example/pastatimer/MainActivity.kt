@@ -25,10 +25,14 @@ class MainActivity : ComponentActivity() {
         }
 
         val allPastas = dao.getAll()
-
+        val sauceDao = db.sauceDao()
+        if (sauceDao.getAll().isEmpty()) {
+            sauceDao.insertAll(defaultSauceList)
+        }
+        val allSauces = sauceDao.getAll()
         setContent {
             PastaTimerTheme {
-                PastaScreen(pastas = allPastas)
+                SauceScreen(sauces = allSauces)
             }
         }
     }
@@ -48,6 +52,34 @@ val defaultPastaList = listOf(
     PastaTypeEntity(name = "Pappardelle", boilTime = 11, imageResName = "pappardelle", flourType = "ou + grâu dur"),
     PastaTypeEntity(name = "Cannelloni", boilTime = 13, imageResName =  "cannelloni", flourType = "grâu dur") )
 
+val defaultSauceList = listOf(
+    SauceEntity(name = "Carbonara", ingredients = "eggs, pancetta, parmesan cheese, black pepper",
+                imageResName = "carbonara"),
+    SauceEntity(name = "Marinara", ingredients = "tomatoes, garlic, onion, basil, olive oil",
+                imageResName = "marinara"),
+    SauceEntity(name = "Pesto", ingredients = "basil, pine nuts, garlic, parmesan cheese, olive oil",
+                imageResName = "pesto"),
+    SauceEntity(name = "Alfredo", ingredients = "butter, heavy cream, parmesan cheese, garlic",
+                imageResName = "alfredo"),
+    SauceEntity(name = "Bolognese", ingredients = "ground beef, tomatoes, onion, garlic, carrots, celery",
+                imageResName = "bolognese"),
+    SauceEntity(name = "Arrabbiata", ingredients = "tomatoes, garlic, chili flakes, olive oil",
+            imageResName = "arrabbiata"),
+    SauceEntity(name = "Gorgonzola", ingredients = "gorgonzola cheese, cream, butter, garlic",
+                imageResName = "gorgonzola"),
+    SauceEntity(name = "Mushroom", ingredients = "mushrooms, cream, garlic, butter, onion",
+                imageResName = "mushroom"),
+    SauceEntity(name = "Vodka Sauce", ingredients = "vodka, tomatoes, cream, onion, garlic",
+                imageResName = "vodka"),
+    SauceEntity(name = "Cheese Sauce", ingredients = "cheddar cheese, milk, butter, flour",
+                imageResName = "cheese_sauce"),
+    SauceEntity(name = "Romesco", ingredients = "roasted red peppers, almonds, tomatoes, garlic, olive oil",
+                imageResName = "romesco"),
+    SauceEntity(name = "Puttanesca", ingredients = "tomatoes, olives, capers, anchovies, garlic",
+                imageResName = "puttanesca")
+)
+
+
 @Preview(showBackground = true)
 @Composable
 fun PastaCountPreview() {
@@ -56,6 +88,5 @@ fun PastaCountPreview() {
     }
                 LogInScreen()
             }
-        }
-    }
-}
+
+
