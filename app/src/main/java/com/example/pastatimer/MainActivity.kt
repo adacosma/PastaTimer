@@ -89,7 +89,7 @@ fun PastaCountPreview() {
     PastaTimerTheme {
         Text("Pasta Number: ${defaultPastaList.size}")
     }
-                LogInScreen()
+                NavGraph();
             }
 
 
