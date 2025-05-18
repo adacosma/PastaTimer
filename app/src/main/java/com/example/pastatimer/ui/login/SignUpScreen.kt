@@ -6,10 +6,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import androidx.compose.ui.platform.LocalContext
@@ -46,7 +44,7 @@ fun SignUpScreen(navController: NavController) {
         OutlinedTextField(
             value = user,
             onValueChange = { user = it },
-            label = { Text("user") },
+            label = { Text("User") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
@@ -74,7 +72,21 @@ fun SignUpScreen(navController: NavController) {
 
         Button(
             onClick = {
-                if (password == confirmPassword && password.isNotBlank()) {
+                if (user.isBlank()) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Username cannot be empty",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                } else if (password != confirmPassword || password.isBlank()) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Passwords do not match",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                } else {
                     coroutineScope.launch {
                         val existingUser = userDao.getUserByUsername(user)
                         if (existingUser == null) {
@@ -98,13 +110,6 @@ fun SignUpScreen(navController: NavController) {
                             )
                         }
                     }
-                } else {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Passwords do not match",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
                 }
             },
             modifier = Modifier
@@ -115,13 +120,5 @@ fun SignUpScreen(navController: NavController) {
         }
 
         MySnackbar(snackbarHostState = snackbarHostState)
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SignUpScreenPreview() {
-    com.example.pastatimer.ui.theme.PastaTimerTheme {
-        SignUpScreen(navController = rememberNavController())
     }
 }
