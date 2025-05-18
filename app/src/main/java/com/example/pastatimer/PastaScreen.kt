@@ -60,7 +60,7 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
                 modifier = Modifier.weight(1f)
             ) {
                 items(currentItems) { pasta ->
-                    PastaCard(pasta)
+                    PastaCard(pasta = pasta, navController = navController, username = user.username)
                 }
             }
 
@@ -103,8 +103,63 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
     }
 }
 
+//@Composable
+//fun PastaCard(pasta: PastaTypeEntity) {
+//    val context = LocalContext.current
+//    val imageId = remember(pasta.imageResName) {
+//        try {
+//            val resId = context.resources.getIdentifier(
+//                pasta.imageResName,
+//                "drawable",
+//                context.packageName
+//            )
+//            if (resId == 0) {
+//                Log.w("PastaScreen", "No image found: ${pasta.imageResName}")
+//            }
+//            resId
+//        } catch (e: Exception) {
+//            Log.e("PastaScreen", "Error while loading ${pasta.imageResName}: ${e.message}")
+//            0
+//        }
+//    }
+//
+//    Card(
+//        modifier = Modifier.fillMaxWidth(),
+//        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+//    ) {
+//        Column(
+//            horizontalAlignment = Alignment.CenterHorizontally,
+//            modifier = Modifier.padding(8.dp)
+//        ) {
+//            if (imageId != 0) {
+//                Image(
+//                    painter = painterResource(id = imageId),
+//                    contentDescription = pasta.name,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(70.dp)
+//                )
+//            }
+//
+//            Spacer(modifier = Modifier.height(8.dp))
+//            Text(pasta.name, style = MaterialTheme.typography.titleMedium)
+//            Text("Time: ${pasta.boilTime} min", style = MaterialTheme.typography.bodySmall)
+//            Text("Flour: ${pasta.flourType}", style = MaterialTheme.typography.bodySmall)
+//
+//            Button(
+//                onClick = { /* TODO: Start Timer - Sandra */ },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(top = 8.dp)
+//            ) {
+//                Text("Start Timer for ${pasta.name}")
+//            }
+//        }
+//    }
+//}
+
 @Composable
-fun PastaCard(pasta: PastaTypeEntity) {
+fun PastaCard(pasta: PastaTypeEntity, navController: NavController, username: String){
     val context = LocalContext.current
     val imageId = remember(pasta.imageResName) {
         try {
@@ -147,7 +202,9 @@ fun PastaCard(pasta: PastaTypeEntity) {
             Text("Flour: ${pasta.flourType}", style = MaterialTheme.typography.bodySmall)
 
             Button(
-                onClick = { /* TODO: Start Timer - Sandra */ },
+                onClick = {
+                    navController.navigate("timer/${pasta.name}/${pasta.boilTime}/$username")
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
