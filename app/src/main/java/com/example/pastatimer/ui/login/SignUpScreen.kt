@@ -12,14 +12,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalContext
+import com.example.pastatimer.AppDatabase
+import com.example.pastatimer.UserEntity
 
-
-@Composable
-fun MySnackbar(snackbarHostState: SnackbarHostState) {
-    SnackbarHost(hostState = snackbarHostState) { data ->
-        Snackbar(snackbarData = data)
-    }
-}
 
 @Composable
 fun SignUpScreen(navController: NavController) {
@@ -29,6 +25,10 @@ fun SignUpScreen(navController: NavController) {
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    val context = LocalContext.current
+    val db = AppDatabase.getDatabase(context)
+    val userDao = db.userDao()
 
     Column(
         modifier = Modifier
@@ -76,12 +76,27 @@ fun SignUpScreen(navController: NavController) {
             onClick = {
                 if (password == confirmPassword && password.isNotBlank()) {
                     coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Account created successfully",
-                            duration = SnackbarDuration.Short
-                        )
-                        delay(500)
-                        navController.navigate("login")
+                        val existingUser = userDao.getUserByUsername(user)
+                        if (existingUser == null) {
+                            val newUser = UserEntity(
+                                username = user,
+                                password = password,
+                                isVegan = false,
+                                allergens = ""
+                            )
+                            userDao.insertUser(newUser)
+                            snackbarHostState.showSnackbar(
+                                message = "Account created successfully",
+                                duration = SnackbarDuration.Short
+                            )
+                            delay(300)
+                            navController.navigate("allergens/$user")
+                        } else {
+                            snackbarHostState.showSnackbar(
+                                message = "Username already exists",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
                     }
                 } else {
                     coroutineScope.launch {

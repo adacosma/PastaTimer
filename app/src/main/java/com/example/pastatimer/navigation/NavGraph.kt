@@ -8,6 +8,7 @@ import com.example.pastatimer.SauceScreen
 import com.example.pastatimer.defaultPastaList
 import com.example.pastatimer.defaultSauceList
 import com.example.pastatimer.ui.login.LogInScreen
+import com.example.pastatimer.ui.login.PersonaliseSuggestions
 import com.example.pastatimer.ui.login.SignUpScreen
 import com.example.pastatimer.ui.menu.MainMenu
 import com.example.pastatimer.ui.screens.PastaScreen
@@ -18,8 +19,14 @@ fun NavGraph() {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { LogInScreen(navController) }
         composable("sign up") { SignUpScreen(navController) }
+        composable("allergens/{username}") { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            PersonaliseSuggestions(navController, username)
+        }
+
         composable("home") { MainMenu(navController) }
         composable("pasta") { PastaScreen(defaultPastaList) }
         composable("sauce") { SauceScreen(defaultSauceList) }
+
     }
 }

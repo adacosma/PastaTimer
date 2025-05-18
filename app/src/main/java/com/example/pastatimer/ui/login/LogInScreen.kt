@@ -5,17 +5,27 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.pastatimer.AppDatabase
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun LogInScreen(navController: NavController) {
-    var user by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val db = AppDatabase.getDatabase(context)
+    val userDao = db.userDao()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     Column (
         modifier = Modifier
@@ -32,8 +42,8 @@ fun LogInScreen(navController: NavController) {
         )
 
         OutlinedTextField(
-            value = user,
-            onValueChange = { user = it },
+            value = username,
+            onValueChange = { username = it },
             label = { Text("user") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -51,7 +61,24 @@ fun LogInScreen(navController: NavController) {
         )
 
         Button(
-            onClick = { navController.navigate("home") },
+            onClick = {
+                coroutineScope.launch {
+                    val user = userDao.getUserByUsername(username)
+                    if (user == null) {
+                        snackbarHostState.showSnackbar(
+                            message = "Username not found",
+                            duration = SnackbarDuration.Short
+                        )
+                    } else if (user.password != password) {
+                        snackbarHostState.showSnackbar(
+                            message = "Incorrect password",
+                            duration = SnackbarDuration.Short
+                        )
+                    } else {
+                        navController.navigate("home")
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
@@ -73,7 +100,7 @@ fun LogInScreen(navController: NavController) {
                 )
             }
         }
-
+        MySnackbar(snackbarHostState = snackbarHostState)
     }
 }
 

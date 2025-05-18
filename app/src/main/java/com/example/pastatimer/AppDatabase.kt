@@ -5,10 +5,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
 
-@Database(entities = [PastaTypeEntity::class, SauceEntity::class], version = 5)
+@Database(entities = [PastaTypeEntity::class, SauceEntity::class,  UserEntity::class], version = 6)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun pastaTypeDao(): PastaTypeDao
     abstract fun sauceDao(): SauceDao
+    abstract fun userDao(): UserDao
+
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
