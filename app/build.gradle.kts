@@ -60,6 +60,10 @@ dependencies {
     //implementation(libs.androidx.navigation.runtime.desktop)
     //implementation(libs.androidx.navigation.runtime.jvmstubs)
     implementation("androidx.compose.runtime:runtime-livedata:1.6.1")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
+    // în dependencies
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
