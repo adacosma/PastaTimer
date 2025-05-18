@@ -22,6 +22,7 @@ import com.example.pastatimer.AppDatabase
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
+import com.example.pastatimer.TimerScreen
 
 
 @Composable
@@ -86,6 +87,13 @@ fun NavGraph() {
             }
 
         }
+
+        composable("timer/{name}/{boilTime}") { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("name") ?: "Unknown"
+            val boilTime = backStackEntry.arguments?.getString("boilTime")?.toIntOrNull() ?: 0
+            TimerScreen(pastaName = name, boilTime = boilTime, navController = navController)
+        }
+
 
     }
 }
