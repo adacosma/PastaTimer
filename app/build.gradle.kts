@@ -71,4 +71,7 @@ dependencies {
     implementation(libs.androidx.room.ktx.v261)
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler.v261)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:5.2.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 }
