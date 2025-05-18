@@ -22,6 +22,15 @@ fun PersonaliseSuggestions(navController: NavController, username: String) {
     val userDao = db.userDao()
     val coroutineScope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) {
+        val user = userDao.getUserByUsername(username)
+        user?.let {
+            isVegetarian = it.isVegan
+            selectedAllergens.clear()
+            selectedAllergens.addAll(it.allergens.split(",").filter { it.isNotBlank() })
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -81,7 +90,7 @@ fun PersonaliseSuggestions(navController: NavController, username: String) {
                     isVegan = isVegetarian,
                     allergens = allergensString
                 )
-                navController.navigate("login")
+                navController.navigate("home/$username")
             }
         }) {
             Text("Save Preferences")

@@ -18,6 +18,4 @@ interface UserDao {
 
     @Query("UPDATE users SET isVegan = :isVegan, allergens = :allergens WHERE username = :username")
     fun updatePreferences(username: String, isVegan: Boolean, allergens: String)
-
-
 }
