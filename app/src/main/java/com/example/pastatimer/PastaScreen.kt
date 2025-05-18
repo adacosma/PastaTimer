@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 
 @Composable
-fun PastaScreen(pastas: List<PastaTypeEntity>, navController: NavController) {
+fun PastaScreen(pastas: List<PastaTypeEntity>, navController: NavController, username: String) {
     var pageIndex by remember { mutableIntStateOf(0) }
     val itemsPerPage = 6
     val pageCount = (pastas.size + itemsPerPage - 1) / itemsPerPage
@@ -91,7 +91,7 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, navController: NavController) {
             }
         }
         Button(
-            onClick = { navController.navigate("home") },
+            onClick = { navController.navigate("home/$username") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
