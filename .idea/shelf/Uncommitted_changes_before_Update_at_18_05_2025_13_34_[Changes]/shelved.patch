@@ -1,0 +1,65 @@
+Index: app/src/main/java/com/example/pastatimer/SauceViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/pastatimer/SauceViewModel.kt b/app/src/main/java/com/example/pastatimer/SauceViewModel.kt
+new file mode 100644
+--- /dev/null	(date 1747562534628)
++++ b/app/src/main/java/com/example/pastatimer/SauceViewModel.kt	(date 1747562534628)
+@@ -0,0 +1,55 @@
++package com.example.pastatimer
++
++import androidx.compose.runtime.*
++import androidx.lifecycle.ViewModel
++import com.example.pastatimer.SauceEntity
++import com.example.pastatimer.UserEntity
++import com.example.pastatimer.defaultSauceList
++
++class SauceViewModel : ViewModel() {
++
++    // utilizatorul logat curent
++    var user by mutableStateOf<UserEntity?>(null)
++        private set
++
++    // lista completă de sosuri (poate fi din DB)
++    private val allSauces = defaultSauceList
++
++    // lista filtrată vizibilă în UI
++    private val _filteredSauces = mutableStateOf<List<SauceEntity>>(emptyList())
++    val filteredSauces: State<List<SauceEntity>> get() = _filteredSauces
++
++
++    // când se setează un user nou (ex: după login sau modificare preferințe)
++    fun updateUser(newUser: UserEntity) {
++        user = newUser
++        filterSauces()
++    }
++
++    // logica de filtrare
++    private fun filterSauces() {
++        val currentUser = user ?: return
++
++        val allergens = currentUser.allergens
++            .split(",")
++            .map { it.trim().lowercase() }
++            .filter { it.isNotBlank() }
++
++        val veganOnly = currentUser.isVegan
++
++        _filteredSauces.value = allSauces.filter { sauce ->
++            val ingredients = sauce.ingredients.lowercase()
++
++            val noAllergen = allergens.none { ingredients.contains(it) }
++            val isVeganOk = !veganOnly || !containsMeat(ingredients)
++
++            noAllergen && isVeganOk
++        }
++    }
++
++    // simplu helper pentru a exclude sosuri cu carne
++    private fun containsMeat(ingredients: String): Boolean {
++        return listOf("beef", "pork", "bacon", "anchovies", "meat", "chicken", "ham", "sausage")
++            .any { ingredients.contains(it) }
++    }
++}
