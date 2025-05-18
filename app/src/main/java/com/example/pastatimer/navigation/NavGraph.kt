@@ -40,6 +40,7 @@ fun NavGraph() {
             MainMenu(navController, username)
         }
 
+
         composable("pasta/{username}") { backStackEntry ->
             val username = backStackEntry.arguments?.getString("username") ?: ""
             val context = LocalContext.current
@@ -73,6 +74,8 @@ fun NavGraph() {
                 SauceScreen(navController = navController, user = user.value!!)
             }
         }
+
+
 
 
         composable("details/{sauceName}") { backStackEntry ->
