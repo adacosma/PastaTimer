@@ -75,7 +75,7 @@ fun LogInScreen(navController: NavController) {
                             duration = SnackbarDuration.Short
                         )
                     } else {
-                        navController.navigate("home")
+                        navController.navigate("home/$username")
                     }
                 }
             },

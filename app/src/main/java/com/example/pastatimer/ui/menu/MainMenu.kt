@@ -6,12 +6,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun MainMenu(navController: NavController) {
+fun MainMenu(navController: NavController, username: String) {
 
     Column (
         modifier = Modifier
@@ -52,13 +50,14 @@ fun MainMenu(navController: NavController) {
         ) {
             Text("View Favourites")
         }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    com.example.pastatimer.ui.theme.PastaTimerTheme {
-        MainMenu(navController = rememberNavController())
+        Button(
+            onClick = { navController.navigate("allergens/$username") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp)
+        ) {
+            Text("Change Preferences")
+        }
     }
 }

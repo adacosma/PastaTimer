@@ -25,9 +25,14 @@ fun NavGraph() {
             PersonaliseSuggestions(navController, username)
         }
 
-        composable("home") { MainMenu(navController) }
+        composable("home/{username}") {backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            MainMenu(navController, username)
+
+        }
         composable("pasta") { PastaScreen(defaultPastaList,  navController = navController) }
         composable("sauce") { SauceScreen(defaultSauceList, navController = navController )}
+
         composable("details/{sauceName}") { backStackEntry ->
             val name = backStackEntry.arguments?.getString("sauceName") ?: ""
             val sauce = defaultSauceList.find { it.name == name }
