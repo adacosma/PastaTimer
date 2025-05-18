@@ -15,10 +15,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pastatimer.viewmodel.SauceViewModel
 
 @Composable
-fun SauceScreen(sauces: List<SauceEntity>, navController: NavController) {
+fun SauceScreen(  navController: NavController,
+                  user: UserEntity,
+                  viewModel: SauceViewModel = viewModel()) {
+    val sauces by viewModel.filteredSauces
     var pageIndex by remember { mutableIntStateOf(0) }
+    LaunchedEffect(user) {
+        viewModel.updateUser(user)
+    }
     val itemsPerPage = 6
     val pageCount = (sauces.size + itemsPerPage - 1) / itemsPerPage
     val currentItems = sauces.drop(pageIndex * itemsPerPage).take(itemsPerPage)
@@ -90,7 +98,7 @@ fun SauceScreen(sauces: List<SauceEntity>, navController: NavController) {
         }
 
         Button(
-            onClick = { navController.navigate("home") },
+            onClick = { navController.navigate("home/${user.username}") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)

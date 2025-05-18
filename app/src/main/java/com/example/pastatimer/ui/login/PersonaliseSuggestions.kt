@@ -90,7 +90,8 @@ fun PersonaliseSuggestions(navController: NavController, username: String) {
                     isVegan = isVegetarian,
                     allergens = allergensString
                 )
-                navController.navigate("home/$username")
+                val updatedUser = userDao.getUserByUsername(username)
+                navController.navigate("home/${username}")
             }
         }) {
             Text("Save Preferences")

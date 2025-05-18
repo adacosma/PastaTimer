@@ -73,14 +73,14 @@ val defaultSauceList = listOf(
                 imageResName = "gorgonzola"),
     SauceEntity(name = "Mushroom", ingredients = "mushrooms, cream, garlic, butter, onion, parsley, salt, pepper",
                 imageResName = "mushroom"),
-    SauceEntity(name = "Vodka Sauce", ingredients = "vodka, tomatoes, cream, onion, garlic, basil, salt, pepper",
-                imageResName = "vodka"),
     SauceEntity(name = "Cheese Sauce", ingredients = "cheddar cheese, parmesan cheese, gorgonzola, mozzarella, milk, butter, flour, salt, pepper",
                 imageResName = "cheese_sauce"),
     SauceEntity(name = "Romesco", ingredients = "roasted red peppers, almonds, tomatoes, garlic, olive oil, vinegar, smoked paprika, salt, pepper",
                 imageResName = "romesco"),
     SauceEntity(name = "Puttanesca", ingredients = "tomatoes, olives, capers, anchovies, garlic, basil, oregano, olive oil, salt, pepper",
-                imageResName = "puttanesca")
+                imageResName = "puttanesca"),
+    SauceEntity(name = "Vodka Sauce", ingredients = "vodka, tomatoes, cream, onion, garlic, basil, salt, pepper",
+        imageResName = "vodka")
 )
 
 
