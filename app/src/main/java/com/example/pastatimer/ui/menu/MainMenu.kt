@@ -25,7 +25,7 @@ fun MainMenu(navController: NavController, username: String) {
         )
 
         Button(
-            onClick = { navController.navigate("pasta") },
+            onClick = { navController.navigate("pasta/$username") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
@@ -34,7 +34,7 @@ fun MainMenu(navController: NavController, username: String) {
         }
 
         Button(
-            onClick = { navController.navigate("sauce") },
+            onClick = { navController.navigate("sauce/$username") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)

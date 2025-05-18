@@ -1,7 +1,6 @@
 package com.example.pastatimer
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -17,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun SauceScreen(sauces: List<SauceEntity>, navController: NavController) {
+fun SauceScreen(sauces: List<SauceEntity>, navController: NavController, username: String) {
     var pageIndex by remember { mutableIntStateOf(0) }
     val itemsPerPage = 6
     val pageCount = (sauces.size + itemsPerPage - 1) / itemsPerPage
@@ -90,7 +89,7 @@ fun SauceScreen(sauces: List<SauceEntity>, navController: NavController) {
         }
 
         Button(
-            onClick = { navController.navigate("home") },
+            onClick = { navController.navigate("home/$username") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)

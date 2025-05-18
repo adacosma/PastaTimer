@@ -30,8 +30,18 @@ fun NavGraph() {
             MainMenu(navController, username)
 
         }
-        composable("pasta") { PastaScreen(defaultPastaList,  navController = navController) }
-        composable("sauce") { SauceScreen(defaultSauceList, navController = navController )}
+
+        composable("pasta/{username}") {backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            PastaScreen(defaultPastaList, navController, username)
+
+        }
+
+        composable("sauce/{username}") {backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            SauceScreen(defaultSauceList, navController, username)
+
+        }
 
         composable("details/{sauceName}") { backStackEntry ->
             val name = backStackEntry.arguments?.getString("sauceName") ?: ""
