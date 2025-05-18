@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.pastatimer.SauceDetailsScreen
 import com.example.pastatimer.SauceScreen
 import com.example.pastatimer.defaultPastaList
 import com.example.pastatimer.defaultSauceList
@@ -25,8 +26,16 @@ fun NavGraph() {
         }
 
         composable("home") { MainMenu(navController) }
-        composable("pasta") { PastaScreen(defaultPastaList) }
-        composable("sauce") { SauceScreen(defaultSauceList) }
+        composable("pasta") { PastaScreen(defaultPastaList,  navController = navController) }
+        composable("sauce") { SauceScreen(defaultSauceList, navController = navController )}
+        composable("details/{sauceName}") { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("sauceName") ?: ""
+            val sauce = defaultSauceList.find { it.name == name }
+            if (sauce != null) {
+                SauceDetailsScreen(sauce = sauce, navController = navController)
+            }
+
+        }
 
     }
 }
