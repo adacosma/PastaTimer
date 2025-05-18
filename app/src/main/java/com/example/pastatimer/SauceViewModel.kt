@@ -6,12 +6,12 @@ import com.example.pastatimer.SauceEntity
 import com.example.pastatimer.UserEntity
 import com.example.pastatimer.defaultSauceList
 
-class SauceViewModel : ViewModel() {
-
+class SauceViewModel(
+    private val allSauces: List<SauceEntity> = defaultSauceList
+) : ViewModel() {
     var user by mutableStateOf<UserEntity?>(null)
         private set
 
-    private val allSauces = defaultSauceList
 
     private val _filteredSauces = mutableStateOf<List<SauceEntity>>(emptyList())
     val filteredSauces: State<List<SauceEntity>> get() = _filteredSauces
@@ -37,7 +37,7 @@ class SauceViewModel : ViewModel() {
             .map { it.trim().lowercase() }
             .filter { it.isNotBlank() }
 
-        val veganOnly = currentUser.isVegan
+        val vegetarianOnly = currentUser.isVegetarian
 
         _filteredSauces.value = allSauces.filter { sauce ->
             val ingredients = sauce.ingredients.lowercase()
@@ -57,21 +57,23 @@ class SauceViewModel : ViewModel() {
             val noAllergen = !containsAllergen
 
             val hasMeat = containsMeat(ingredients)
-            val isVeganOk = !veganOnly || !hasMeat
+            val isVegetarianOk = !vegetarianOnly || !hasMeat
 
-            return@filter noAllergen && isVeganOk
+            return@filter noAllergen && isVegetarianOk
         }
 
     }
 
     private fun containsMeat(ingredients: String): Boolean {
         val meat = listOf("beef", "pork", "chicken", "bacon", "meat", "ham", "sausage", "anchovies")
-        for (keyword in meat) {
-            if (ingredients.contains(keyword)) {
+        for (product in meat) {
+            if (ingredients.contains(product)) {
                 return true
             }
         }
         return false
     }
+
+
 
 }

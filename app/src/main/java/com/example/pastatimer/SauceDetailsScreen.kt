@@ -32,7 +32,6 @@ fun SauceDetailsScreen(sauce: SauceEntity, navController: NavController) {
             style = MaterialTheme.typography.headlineLarge
         )
 
-        // Imagine
         Spacer(modifier = Modifier.height(24.dp))
         if (imageId != 0) {
             Image(

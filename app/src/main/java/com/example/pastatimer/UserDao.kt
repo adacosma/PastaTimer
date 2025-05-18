@@ -16,6 +16,6 @@ interface UserDao {
     @Query("SELECT * FROM users")
     fun getAllUsers(): List<UserEntity>
 
-    @Query("UPDATE users SET isVegan = :isVegan, allergens = :allergens WHERE username = :username")
-    fun updatePreferences(username: String, isVegan: Boolean, allergens: String)
+    @Query("UPDATE users SET isVegetarian = :isVegetarian, allergens = :allergens WHERE username = :username")
+    fun updatePreferences(username: String, isVegetarian: Boolean, allergens: String)
 }

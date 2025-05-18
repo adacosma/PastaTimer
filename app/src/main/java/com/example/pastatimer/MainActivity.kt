@@ -26,13 +26,11 @@ class MainActivity : ComponentActivity() {
             dao.insertAll(defaultPastaList)
         }
 
-        val allPastas = dao.getAll()
         val sauceDao = db.sauceDao()
         if (sauceDao.getAll().isEmpty()) {
             sauceDao.insertAll(defaultSauceList)
         }
 
-        val allSauces = sauceDao.getAll()
         setContent {
             PastaTimerTheme {
                 NavGraph()

@@ -81,7 +81,7 @@ fun SignUpScreen(navController: NavController) {
                             val newUser = UserEntity(
                                 username = user,
                                 password = password,
-                                isVegan = false,
+                                isVegetarian = false,
                                 allergens = ""
                             )
                             userDao.insertUser(newUser)

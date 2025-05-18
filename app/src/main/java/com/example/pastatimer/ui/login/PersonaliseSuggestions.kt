@@ -25,7 +25,7 @@ fun PersonaliseSuggestions(navController: NavController, username: String) {
     LaunchedEffect(Unit) {
         val user = userDao.getUserByUsername(username)
         user?.let {
-            isVegetarian = it.isVegan
+            isVegetarian = it.isVegetarian
             selectedAllergens.clear()
             selectedAllergens.addAll(it.allergens.split(",").filter { it.isNotBlank() })
         }
@@ -87,7 +87,7 @@ fun PersonaliseSuggestions(navController: NavController, username: String) {
                 val allergensString = selectedAllergens.joinToString(",")
                 userDao.updatePreferences(
                     username = username,
-                    isVegan = isVegetarian,
+                    isVegetarian = isVegetarian,
                     allergens = allergensString
                 )
                 val updatedUser = userDao.getUserByUsername(username)

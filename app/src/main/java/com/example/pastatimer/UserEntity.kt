@@ -7,6 +7,6 @@ import androidx.room.PrimaryKey
 data class UserEntity(
     @PrimaryKey val username: String,
     val password: String,
-    val isVegan: Boolean = false,
+    val isVegetarian: Boolean = false,
     val allergens: String = ""
 )
