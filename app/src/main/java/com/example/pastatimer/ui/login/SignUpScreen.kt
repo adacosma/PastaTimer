@@ -90,7 +90,7 @@ fun SignUpScreen(navController: NavController) {
                                 duration = SnackbarDuration.Short
                             )
                             delay(300)
-                            navController.navigate("allergens/$user")
+                            navController.navigate("login")
                         } else {
                             snackbarHostState.showSnackbar(
                                 message = "Username already exists",
