@@ -88,11 +88,13 @@ fun NavGraph() {
 
         }
 
-        composable("timer/{name}/{boilTime}") { backStackEntry ->
+        composable("timer/{name}/{boilTime}/{username}") { backStackEntry ->
             val name = backStackEntry.arguments?.getString("name") ?: "Unknown"
             val boilTime = backStackEntry.arguments?.getString("boilTime")?.toIntOrNull() ?: 0
-            TimerScreen(pastaName = name, boilTime = boilTime, navController = navController)
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            TimerScreen(pastaName = name, boilTime = boilTime, navController = navController, username = username)
         }
+
 
 
     }

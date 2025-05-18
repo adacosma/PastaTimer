@@ -60,9 +60,7 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
                 modifier = Modifier.weight(1f)
             ) {
                 items(currentItems) { pasta ->
-//                    PastaCard(pasta)
-                    PastaCard(pasta = pasta, navController = navController)
-
+                    PastaCard(pasta = pasta, navController = navController, username = user.username)
                 }
             }
 
@@ -161,7 +159,7 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
 //}
 
 @Composable
-fun PastaCard(pasta: PastaTypeEntity, navController: NavController) {
+fun PastaCard(pasta: PastaTypeEntity, navController: NavController, username: String){
     val context = LocalContext.current
     val imageId = remember(pasta.imageResName) {
         try {
@@ -205,7 +203,7 @@ fun PastaCard(pasta: PastaTypeEntity, navController: NavController) {
 
             Button(
                 onClick = {
-                    navController.navigate("timer/${pasta.name}/${pasta.boilTime}")
+                    navController.navigate("timer/${pasta.name}/${pasta.boilTime}/$username")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
