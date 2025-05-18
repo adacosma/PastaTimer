@@ -14,9 +14,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 @Composable
-fun SauceScreen(sauces: List<SauceEntity>) {
+fun SauceScreen(sauces: List<SauceEntity>, navController: NavController) {
     var pageIndex by remember { mutableIntStateOf(0) }
     val itemsPerPage = 6
     val pageCount = (sauces.size + itemsPerPage - 1) / itemsPerPage
@@ -54,9 +55,8 @@ fun SauceScreen(sauces: List<SauceEntity>) {
                     .padding(horizontal = 4.dp)
             ) {
                 items(currentItems) { sauce ->
-                    SauceCard(sauce = sauce, onClick = {
-                        println("Clicked: ${sauce.name}")
-                    })
+                    SauceCard(sauce = sauce, navController = navController)
+
                 }
             }
 
@@ -88,11 +88,20 @@ fun SauceScreen(sauces: List<SauceEntity>) {
                 }
             }
         }
+
+        Button(
+            onClick = { navController.navigate("home") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("⬅ Back to Menu")
+        }
     }
 }
 
 @Composable
-fun SauceCard(sauce: SauceEntity, onClick: () -> Unit) {
+fun SauceCard(sauce: SauceEntity, navController: NavController) {
     val context = LocalContext.current
     val imageId = remember(sauce.imageResName) {
         context.resources.getIdentifier(sauce.imageResName, "drawable", context.packageName)
@@ -102,7 +111,7 @@ fun SauceCard(sauce: SauceEntity, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
-            .clickable { onClick() },
+            ,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -118,7 +127,7 @@ fun SauceCard(sauce: SauceEntity, onClick: () -> Unit) {
                     contentDescription = sauce.name,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
+                        .height(80.dp)
                 )
             } else {
                 Box(
@@ -133,15 +142,20 @@ fun SauceCard(sauce: SauceEntity, onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(sauce.name, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
 
             Button(
-                onClick = { onClick() },
-                modifier = Modifier.fillMaxWidth()
+                onClick = {
+                    navController.navigate("details/${sauce.name}")
+                },
+                modifier = Modifier.padding(top = 8.dp)
             ) {
-                Text("See Ingredients")
+                Text("See Ingredients for ${sauce.name}")
             }
+
         }
+
+
     }
 }
