@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 @Composable
 fun FavoriteSauceScreen(
     navController: NavController,
+    username: String,
     viewModel: SauceViewModel = viewModel()
 ) {
     val favoriteSauces by viewModel.favoriteSauces
@@ -98,6 +99,16 @@ fun FavoriteSauceScreen(
             )
         }
     }
+    Spacer(modifier = Modifier.height(16.dp))
+    Button(
+        onClick = { navController.navigate("home/$username") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+    ) {
+        Text("⬅ Back to Menu")
+    }
+
 }
 
 @Composable

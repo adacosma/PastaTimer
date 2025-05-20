@@ -100,10 +100,14 @@ fun NavGraph() {
                 viewModel = timerViewModel
             )
         }
-        composable("favorites") {
-            FavoriteSauceScreen(navController = navController)
-        }
+//        composable("favorites") {
+//            FavoriteSauceScreen(navController = navController)
+//        }
 
+        composable("favorites/{username}") { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            FavoriteSauceScreen(navController = navController, username = username)
+        }
 
 
     }

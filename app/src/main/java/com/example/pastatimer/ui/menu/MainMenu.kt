@@ -45,7 +45,7 @@ fun MainMenu(navController: NavController, username: String) {
         Button(
             onClick = {
                 println("Navigating to favorites") // pentru test
-                navController.navigate("favorites")
+                navController.navigate("favorites/$username")
             },
             modifier = Modifier
                 .fillMaxWidth()
