@@ -101,10 +101,7 @@ fun NavGraph() {
             )
         }
         composable("favorites") {
-            FavoriteSauceScreen(
-                navController = navController,
-                allSauces = defaultSauceList
-            )
+            FavoriteSauceScreen(navController = navController)
         }
 
     }
