@@ -24,7 +24,6 @@ import com.example.pastatimer.viewmodel.SauceViewModel
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 
-
 @Composable
 fun FavoriteSauceScreen(
     navController: NavController,
@@ -36,56 +35,73 @@ fun FavoriteSauceScreen(
 
     val allSauces = remember { mutableStateListOf<SauceEntity>() }
 
-    // Încarcă toate sosurile (pentru lista din dialog)
     LaunchedEffect(Unit) {
         allSauces.clear()
         allSauces.addAll(viewModel.getAllSauces())
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text("❤️ Favorite Sauces", style = MaterialTheme.typography.headlineSmall)
-            Button(onClick = { showDialog = true }) {
-                Text("Add New")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("❤️ Favorite Sauces", style = MaterialTheme.typography.headlineSmall)
+                Button(onClick = { showDialog = true }) {
+                    Text("Add New")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (favoriteSauces.isEmpty()) {
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "No favorite sauces yet.\nTap 'Add New' to choose one.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 8.dp)
+                ) {
+                    items(favoriteSauces) { sauce ->
+                        SauceCardCompact(
+                            sauce = sauce,
+                            navController = navController,
+                            onToggleFavorite = {
+                                viewModel.toggleFavorite(sauce)
+                            }
+                        )
+                    }
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (favoriteSauces.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    "No favorite sauces yet.\nTap 'Add New' to choose one.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 8.dp)
-            ) {
-                items(favoriteSauces) { sauce ->
-                    SauceCardCompact(
-                        sauce = sauce,
-                        navController = navController,
-                        onToggleFavorite = {
-                            viewModel.toggleFavorite(sauce)
-                        }
-                    )
-                }
-            }
+        // Butonul de back poziționat jos
+        Button(
+            onClick = { navController.navigate("home/$username") },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Text("⬅ Back to Menu")
         }
 
         if (showDialog) {
@@ -99,16 +115,6 @@ fun FavoriteSauceScreen(
             )
         }
     }
-    Spacer(modifier = Modifier.height(16.dp))
-    Button(
-        onClick = { navController.navigate("home/$username") },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-    ) {
-        Text("⬅ Back to Menu")
-    }
-
 }
 
 @Composable
