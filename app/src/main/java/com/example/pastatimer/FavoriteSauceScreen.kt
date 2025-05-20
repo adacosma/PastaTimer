@@ -41,16 +41,6 @@ fun FavoriteSauceScreen(
         allSauces.addAll(viewModel.getAllSauces())
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
-
-    Button(
-        onClick = { navController.navigate("home/{username}") }, // vezi notă mai jos 👇
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text("⬅ Back to Menu")
-    }
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
