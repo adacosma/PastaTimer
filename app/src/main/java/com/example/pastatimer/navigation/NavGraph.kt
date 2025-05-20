@@ -22,6 +22,8 @@ import com.example.pastatimer.ui.login.SignUpScreen
 import com.example.pastatimer.ui.menu.MainMenu
 import com.example.pastatimer.ui.screens.PastaScreen
 import com.example.pastatimer.viewmodel.TimerViewModel
+import com.example.pastatimer.FavoriteSauceScreen
+
 
 @Composable
 fun NavGraph() {
@@ -98,5 +100,12 @@ fun NavGraph() {
                 viewModel = timerViewModel
             )
         }
+        composable("favorites") {
+            FavoriteSauceScreen(
+                navController = navController,
+                allSauces = defaultSauceList
+            )
+        }
+
     }
 }

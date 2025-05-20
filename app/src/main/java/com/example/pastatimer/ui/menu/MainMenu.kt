@@ -43,13 +43,17 @@ fun MainMenu(navController: NavController, username: String) {
         }
 
         Button(
-            onClick = {},
+            onClick = {
+                println("Navigating to favorites") // pentru test
+                navController.navigate("favorites")
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
         ) {
             Text("View Favourites")
         }
+
 
         Button(
             onClick = { navController.navigate("allergens/$username") },
