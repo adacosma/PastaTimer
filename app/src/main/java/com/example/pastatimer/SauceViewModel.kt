@@ -11,6 +11,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.example.pastatimer.AppDatabase
 
 class SauceViewModel(application: Application) : AndroidViewModel(application) {
+
     private val sauceDao: SauceDao = AppDatabase.getDatabase(application).sauceDao()
 
     var user by mutableStateOf<UserEntity?>(null)
@@ -33,7 +34,6 @@ class SauceViewModel(application: Application) : AndroidViewModel(application) {
     fun getAllSauces(): List<SauceEntity> {
         return sauceDao.getAll()
     }
-
 
     fun toggleFavorite(sauce: SauceEntity) {
         val newState = !sauce.isFavorite
