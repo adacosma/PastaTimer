@@ -46,24 +46,22 @@ fun FavoriteSauceScreen(
             .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 16.dp) // 👈 împinge titlul în jos
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("❤️ Favorite Sauces", style = MaterialTheme.typography.headlineSmall)
-                Button(onClick = { showDialog = true }) {
-                    Text("Add New")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "❤️ Favorite Sauces",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
             if (favoriteSauces.isEmpty()) {
                 Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center // 👈 pe mijloc vertical și orizontal
                 ) {
                     Text(
                         "No favorite sauces yet.\nTap 'Add New' to choose one.",
@@ -93,15 +91,28 @@ fun FavoriteSauceScreen(
             }
         }
 
-        // Butonul de back poziționat jos
-        Button(
-            onClick = { navController.navigate("home/$username") },
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("⬅ Back to Menu")
+            Button(
+                onClick = { showDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Add New")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = { navController.navigate("home/$username") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("⬅ Back to Menu")
+            }
         }
 
         if (showDialog) {
