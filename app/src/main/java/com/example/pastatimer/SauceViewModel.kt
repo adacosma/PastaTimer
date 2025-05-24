@@ -71,7 +71,7 @@ class SauceViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun containsMeat(ingredients: String): Boolean {
-        val meat = listOf("beef", "pork", "chicken", "bacon", "meat", "ham", "sausage", "anchovies")
+        val meat = listOf("beef", "pork", "chicken", "bacon", "meat", "ham", "sausage", "anchovies", "guanciale")
         return meat.any { ingredients.contains(it) }
     }
 
