@@ -11,6 +11,17 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import com.example.pastatimer.AppDatabase
 
+/**
+ * Composable function that renders a screen allowing the user to personalize
+ * their dietary preferences and allergens.
+ *
+ * - Loads current preferences from the database for the given username.
+ * - Allows the user to select allergens and toggle vegetarian preference.
+ * - On saving, updates the database and navigates back to the home screen.
+ *
+ * @param username The username of the currently logged-in user, used to load and update preferences.
+ */
+
 @Composable
 fun PersonaliseSuggestions(navController: NavController, username: String) {
     val allergensList = listOf("Milk", "Eggs", "Nuts", "Soy", "Fish")
