@@ -14,7 +14,12 @@ import com.example.pastatimer.ui.theme.PastaTimerTheme
 import com.example.pastatimer.PastaTypeEntity
 import com.example.pastatimer.ui.login.LogInScreen
 
-
+/**
+ * Main entry point of the PastaTimer application.
+ *
+ * Initializes the Room database with default pasta and sauce data (if empty),
+ * and sets up the Compose UI using [NavGraph] and [PastaTimerTheme].
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +45,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Default list of pasta types used to prepopulate the database if empty.
+ */
 val defaultPastaList = listOf(
     PastaTypeEntity(name = "Spaghetti", boilTime = 8, imageResName = "spaghetti", flourType = "durum wheat"),
     PastaTypeEntity(name = "Penne", boilTime = 10, imageResName = "penne", flourType = "whole wheat"),
@@ -54,6 +62,9 @@ val defaultPastaList = listOf(
     PastaTypeEntity(name = "Pappardelle", boilTime = 11, imageResName = "pappardelle", flourType = "durum wheat"),
     PastaTypeEntity(name = "Cannelloni", boilTime = 13, imageResName =  "cannelloni", flourType = "whole wheat") )
 
+/**
+ * Default list of sauce types used to prepopulate the database if empty.
+ */
 val defaultSauceList = listOf(
     SauceEntity(name = "Carbonara", ingredients = "eggs, guanciale, parmesan cheese, pecorino, salt, black pepper",
                 imageResName = "carbonara"),

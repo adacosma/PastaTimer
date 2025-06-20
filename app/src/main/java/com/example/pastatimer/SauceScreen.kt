@@ -17,6 +17,15 @@ import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pastatimer.viewmodel.SauceViewModel
 
+/**
+ * Composable screen that shows detailed information about a specific sauce.
+ *
+ * Displays the name, image, and ingredients of the selected [SauceEntity].
+ * Users can navigate back to the previous screen using the back button.
+ *
+ * @param sauce The sauce to be displayed, including its name, image, and ingredients.
+ * @param navController Navigation controller used to handle the back navigation.
+ */
 @Composable
 fun SauceScreen(  navController: NavController,
                   user: UserEntity,

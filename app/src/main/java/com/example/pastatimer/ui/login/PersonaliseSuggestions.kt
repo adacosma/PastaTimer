@@ -22,6 +22,7 @@ import com.example.pastatimer.AppDatabase
  * @param username The username of the currently logged-in user, used to load and update preferences.
  */
 
+
 @Composable
 fun PersonaliseSuggestions(navController: NavController, username: String) {
     val allergensList = listOf("Milk", "Eggs", "Nuts", "Soy", "Fish")

@@ -14,16 +14,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pastatimer.AppDatabase
 import kotlinx.coroutines.launch
 
-/**
- * Composable function that renders the **Log In screen** of the app.
+/*
+ * Composable function that displays the Log In screen.
  *
- * This screen allows the user to input a username and password, and attempts
- * to authenticate them against stored user data using Room (via `userDao`).
- * If login is successful, the user is navigated to the home screen.
- * Otherwise, relevant error messages are shown in a Snackbar.
+ * Allows the user to enter their username and password,
+ * checks credentials using Room database,
+ * and navigates to the home screen if authentication is successful.
  *
+ * @param navController The navigation controller used for route navigation.
  */
-
 
 @Composable
 fun LogInScreen(navController: NavController) {

@@ -24,6 +24,15 @@ import com.example.pastatimer.UserEntity
  *
  */
 
+/**
+ * Composable function that displays the Sign-Up screen.
+ *
+ * Allows users to register a new account by providing a username and matching passwords.
+ * Verifies input, checks for username uniqueness using Room database,
+ * and navigates back to the login screen upon successful registration.
+ *
+ * @param navController The navigation controller used to navigate between screens.
+ */
 @Composable
 fun SignUpScreen(navController: NavController) {
     var user by remember { mutableStateOf("") }

@@ -9,5 +9,8 @@ data class SauceEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val ingredients: String,
-    val imageResName: String
+    val imageResName: String,
+    val isFavorite: Boolean = false
+
 )
+
