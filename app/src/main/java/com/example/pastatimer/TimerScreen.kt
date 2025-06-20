@@ -12,6 +12,25 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.pastatimer.viewmodel.TimerViewModel
 
+/**
+ * Composable screen that displays a countdown timer for cooking pasta.
+ *
+ * Shows the time remaining, a status message (e.g., "Al Dente", "Perfect"),
+ * and changes background color based on the current status.
+ *
+ * Provides buttons to:
+ * - Stop cooking and go to the sauce selection screen
+ * - Reset the timer
+ * - Navigate back
+ *
+ * The timer logic is handled by a shared [TimerViewModel], which manages LiveData updates.
+ *
+ * @param pastaName The name of the selected pasta.
+ * @param boilTime The boiling time in minutes for the selected pasta.
+ * @param username The currently logged-in user's username (used for navigation).
+ * @param navController The navigation controller used for screen transitions.
+ * @param viewModel The shared ViewModel managing the timer state.
+ */
 @Composable
 fun TimerScreen(
     pastaName: String,

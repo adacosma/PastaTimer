@@ -25,6 +25,18 @@ import com.example.pastatimer.viewmodel.TimerViewModel
 import com.example.pastatimer.FavoriteSauceScreen
 
 
+/**
+ * Composable that defines the navigation graph of the Pasta Timer app.
+ *
+ * It uses Jetpack Navigation Compose to map routes to their respective screens.
+ * It also shares a single instance of [TimerViewModel] across screens that need timer state.
+ *
+ * Routes include:
+ * - Authentication (Login, Sign Up)
+ * - User-specific content (Home, Pasta, Sauce, Favorites)
+ * - Timer functionality
+ * - Sauce details and preferences
+ */
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()

@@ -8,6 +8,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.Job
 
+/**
+ * ViewModel responsible for managing the pasta cooking timer.
+ *
+ * Exposes LiveData for time left and cooking status ("Undercooked", "Al Dente", "Perfect", "Overcooked"),
+ * and provides methods to start, cancel, reset, or conditionally restart the timer based on pasta type.
+ *
+ * The timer runs in a coroutine and updates values every second.
+ */
 class TimerViewModel : ViewModel() {
 
     private val _timeLeft = MutableLiveData<Int>()

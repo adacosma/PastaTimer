@@ -12,6 +12,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
+/**
+ * Composable screen that displays detailed information about a selected sauce.
+ *
+ * Shows the sauce name, image, and a list of its ingredients.
+ * Includes a back button to return to the previous screen.
+ *
+ * @param sauce The [SauceEntity] object containing sauce details.
+ * @param navController Navigation controller used to return to the previous screen.
+ */
 @Composable
 fun SauceDetailsScreen(sauce: SauceEntity, navController: NavController) {
     val context = LocalContext.current

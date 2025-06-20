@@ -10,6 +10,17 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.example.pastatimer.AppDatabase
 
+
+/**
+ * ViewModel responsible for managing sauce data and user preferences.
+ *
+ * Provides:
+ * - Retrieval and management of favorite sauces
+ * - Filtering of sauces based on user dietary preferences (vegetarian & allergens)
+ * - Communication with the Room database via [SauceDao]
+ *
+ * @constructor Initializes the ViewModel with the application context to access the database.
+ */
 class SauceViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sauceDao: SauceDao = AppDatabase.getDatabase(application).sauceDao()

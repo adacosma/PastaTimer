@@ -18,6 +18,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.example.pastatimer.UserEntity
 
+/**
+ * Composable screen that displays a paginated grid of available pasta types.
+ *
+ * @param pastas List of pasta types from the database.
+ * @param user The current logged-in user, used to navigate with username.
+ * @param navController Navigation controller for routing.
+ */
 @Composable
 fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
                 navController: NavController) {
@@ -103,6 +110,16 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
     }
 }
 
+/**
+ * Composable that displays a single pasta item in a card layout.
+ *
+ * Includes pasta image, name, boil time, and flour type.
+ * A button is provided to start the cooking timer for the selected pasta.
+ *
+ * @param pasta The pasta entity to display.
+ * @param navController Navigation controller used to go to the timer screen.
+ * @param username The current user's username (for route building).
+ */
 @Composable
 fun PastaCard(pasta: PastaTypeEntity, navController: NavController, username: String){
     val context = LocalContext.current

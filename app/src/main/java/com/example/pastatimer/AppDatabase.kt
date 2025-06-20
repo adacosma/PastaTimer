@@ -5,6 +5,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
 
+
+/**
+ * Room database class for the PastaTimer app.
+ *
+ * Provides DAOs for accessing PastaType, Sauce, and User entities.
+ * Uses a singleton pattern to ensure a single instance of the database
+ * is used throughout the app.
+ *
+ * Database version: 9 (with destructive migrations allowed).
+ */
 @Database(entities = [PastaTypeEntity::class, SauceEntity::class,  UserEntity::class], version = 9)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun pastaTypeDao(): PastaTypeDao

@@ -24,6 +24,16 @@ import com.example.pastatimer.viewmodel.SauceViewModel
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 
+/**
+ * Composable screen that displays the user's favorite sauces.
+ *
+ * Shows a grid of favorite sauces with options to add new ones or go back to the main menu.
+ * Allows toggling favorite status and opens a selection dialog for adding more.
+ *
+ * @param navController Navigation controller for screen transitions.
+ * @param username The current user's username.
+ * @param viewModel ViewModel that provides sauce data and favorite management.
+ */
 @Composable
 fun FavoriteSauceScreen(
     navController: NavController,

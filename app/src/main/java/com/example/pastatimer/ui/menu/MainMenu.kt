@@ -8,6 +8,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
+/**
+ * Composable function that displays the main menu after user login.
+ *
+ * Provides navigation options for selecting pasta, sauces, viewing favorites,
+ * and changing dietary preferences. All navigation actions are personalized
+ * using the given username.
+ *
+ * @param navController The navigation controller used for screen transitions.
+ * @param username The current user's username, passed to all destination routes.
+ */
 @Composable
 fun MainMenu(navController: NavController, username: String) {
 
