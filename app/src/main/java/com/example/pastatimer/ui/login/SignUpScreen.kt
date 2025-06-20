@@ -14,6 +14,15 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.pastatimer.AppDatabase
 import com.example.pastatimer.UserEntity
 
+/**
+ * Composable screen that handles the **user registration** (sign up) process.
+ *
+ * - Collects username and password input from the user.
+ * - Validates input (non-empty username, matching passwords).
+ * - Interacts with the local Room database to create a new account if the username is unique.
+ * - Shows feedback via Snackbars and navigates to the login screen after success.
+ *
+ */
 
 /**
  * Composable function that displays the Sign-Up screen.

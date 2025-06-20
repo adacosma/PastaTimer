@@ -5,15 +5,33 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.*
 
+/**
+ * Unit tests for [UserDao] using Mockito to mock the DAO behavior.
+ *
+ * This test class verifies the correct behavior of the following DAO methods:
+ * - [UserDao.getUserByUsername]
+ * - [UserDao.insertUser]
+ * - [UserDao.updatePreferences]
+ *
+ * These are **pure unit tests** that use mocked behavior and do **not** access a real database.
+ */
+
 class UserDaoTest {
 
     private lateinit var mockUserDao: UserDao
 
+    /**
+     * Sets up a mock instance of [UserDao] before each test.
+     */
     @Before
     fun setup() {
         mockUserDao = mock()
     }
 
+    /**
+     * Tests that [UserDao.getUserByUsername] returns the expected [UserEntity]
+     * when a matching user exists.
+     */
     @Test
     fun testGetUserByUsername_returnsUser() {
         val expectedUser = UserEntity(
@@ -33,6 +51,10 @@ class UserDaoTest {
         assertEquals("Gluten,Nuts", result?.allergens)
     }
 
+    /**
+     * Tests that [UserDao.insertUser] can insert a user and the same user
+     * can be retrieved afterwards using [UserDao.getUserByUsername].
+     */
     @Test
     fun insertUser_addsUserCorrectly() {
         val user = UserEntity(
@@ -51,6 +73,10 @@ class UserDaoTest {
         assertEquals(user, retrievedUser)
     }
 
+    /**
+     * Tests that [UserDao.updatePreferences] correctly updates the user's
+     * vegetarian preference and allergen list.
+     */
     @Test
     fun updatePreferences_updatesUserDataCorrectly() {
         val user = UserEntity(
