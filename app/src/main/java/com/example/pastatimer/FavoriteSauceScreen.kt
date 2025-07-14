@@ -31,14 +31,13 @@ fun FavoriteSauceScreen(
     viewModel: MainViewModel = viewModel()
 ) {
     val favoriteSauces by viewModel.favoriteSauces.observeAsState(emptyList())
+    val allSauces by viewModel.allSauces.observeAsState(emptyList())
     var showDialog by remember { mutableStateOf(false) }
 
-    val allSauces = remember { mutableStateListOf<SauceEntity>() }
-
+    // La început, încărcăm datele
     LaunchedEffect(Unit) {
         viewModel.loadFavorites(username)
-        allSauces.clear()
-        allSauces.addAll(viewModel.getAllSauces())
+        viewModel.loadAllSauces()
     }
 
     Box(
@@ -88,6 +87,7 @@ fun FavoriteSauceScreen(
             }
         }
 
+        // Butoane de jos
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -112,6 +112,7 @@ fun FavoriteSauceScreen(
             }
         }
 
+        // Dialogul pentru selecție
         if (showDialog) {
             SauceSelectionDialog(
                 allSauces = allSauces.filter { sauce ->

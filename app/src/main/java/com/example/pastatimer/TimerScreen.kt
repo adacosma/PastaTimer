@@ -10,7 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.pastatimer.viewmodel.TimerViewModel
+import com.example.pastatimer.viewmodel.MainViewModel
+
 
 /**
  * Composable screen that displays a countdown timer for cooking pasta.
@@ -37,7 +38,7 @@ fun TimerScreen(
     boilTime: Int,
     username: String,
     navController: NavController,
-    viewModel: TimerViewModel
+    viewModel: MainViewModel
 ) {
     val timeLeft by viewModel.timeLeft.observeAsState(boilTime * 60)
     val status by viewModel.status.observeAsState("Starting...")

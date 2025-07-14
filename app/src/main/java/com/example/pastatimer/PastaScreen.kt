@@ -11,27 +11,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import com.example.pastatimer.PastaTypeEntity
-import android.util.Log
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.pastatimer.UserEntity
+import com.example.pastatimer.viewmodel.MainViewModel
+import com.example.pastatimer.PastaTypeEntity
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.livedata.observeAsState
 
-/**
- * Composable screen that displays a paginated grid of available pasta types.
- *
- * @param pastas List of pasta types from the database.
- * @param user The current logged-in user, used to navigate with username.
- * @param navController Navigation controller for routing.
- */
 @Composable
-fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
-                navController: NavController) {
+fun PastaScreen(
+    navController: NavController,
+    username: String,
+    viewModel: MainViewModel
+) {
+    val pastaTypes by viewModel.pastaTypes.observeAsState(emptyList())
+
     var pageIndex by remember { mutableIntStateOf(0) }
     val itemsPerPage = 6
-    val pageCount = (pastas.size + itemsPerPage - 1) / itemsPerPage
-    val currentItems = pastas.drop(pageIndex * itemsPerPage).take(itemsPerPage)
+    val pageCount = (pastaTypes.size + itemsPerPage - 1) / itemsPerPage
+    val currentItems = pastaTypes.drop(pageIndex * itemsPerPage).take(itemsPerPage)
+
+    LaunchedEffect(Unit) {
+        viewModel.loadPastaTypes()
+    }
 
     Column(
         modifier = Modifier
@@ -41,12 +44,12 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
         Spacer(modifier = Modifier.height(15.dp))
 
         Text(
-            "🍝 List of pasta types (${pastas.size})",
+            "\uD83C\uDF5D List of pasta types (${pastaTypes.size})",
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        if (pastas.isEmpty()) {
+        if (pastaTypes.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -67,7 +70,7 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
                 modifier = Modifier.weight(1f)
             ) {
                 items(currentItems) { pasta ->
-                    PastaCard(pasta = pasta, navController = navController, username = user.username)
+                    PastaCard(pasta = pasta, navController = navController, username = username)
                 }
             }
 
@@ -82,7 +85,7 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
                         onClick = { if (pageIndex > 0) pageIndex-- },
                         enabled = pageIndex > 0
                     ) {
-                        Text("◀ Previous")
+                        Text("\u25C0 Previous")
                     }
 
                     Text(
@@ -94,50 +97,32 @@ fun PastaScreen(pastas: List<PastaTypeEntity>, user: UserEntity,
                         onClick = { if (pageIndex < pageCount - 1) pageIndex++ },
                         enabled = pageIndex < pageCount - 1
                     ) {
-                        Text("Next ▶")
+                        Text("Next \u25B6")
                     }
                 }
             }
         }
+
         Button(
-            onClick = { navController.navigate("home/${user.username}")},
+            onClick = { navController.navigate("home/$username") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text("⬅ Back to Menu")
+            Text("\u2B05 Back to Menu")
         }
     }
 }
 
-/**
- * Composable that displays a single pasta item in a card layout.
- *
- * Includes pasta image, name, boil time, and flour type.
- * A button is provided to start the cooking timer for the selected pasta.
- *
- * @param pasta The pasta entity to display.
- * @param navController Navigation controller used to go to the timer screen.
- * @param username The current user's username (for route building).
- */
 @Composable
-fun PastaCard(pasta: PastaTypeEntity, navController: NavController, username: String){
+fun PastaCard(pasta: PastaTypeEntity, navController: NavController, username: String) {
     val context = LocalContext.current
     val imageId = remember(pasta.imageResName) {
-        try {
-            val resId = context.resources.getIdentifier(
-                pasta.imageResName,
-                "drawable",
-                context.packageName
-            )
-            if (resId == 0) {
-                Log.w("PastaScreen", "No image found: ${pasta.imageResName}")
-            }
-            resId
-        } catch (e: Exception) {
-            Log.e("PastaScreen", "Error while loading ${pasta.imageResName}: ${e.message}")
-            0
-        }
+        context.resources.getIdentifier(
+            pasta.imageResName,
+            "drawable",
+            context.packageName
+        )
     }
 
     Card(

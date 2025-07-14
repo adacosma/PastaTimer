@@ -14,30 +14,35 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pastatimer.viewmodel.SauceViewModel
+import androidx.compose.runtime.livedata.observeAsState
+import com.example.pastatimer.viewmodel.MainViewModel
 
-/**
- * Composable screen that shows detailed information about a specific sauce.
- *
- * Displays the name, image, and ingredients of the selected [SauceEntity].
- * Users can navigate back to the previous screen using the back button.
- *
- * @param sauce The sauce to be displayed, including its name, image, and ingredients.
- * @param navController Navigation controller used to handle the back navigation.
- */
 @Composable
-fun SauceScreen(  navController: NavController,
-                  user: UserEntity,
-                  viewModel: SauceViewModel = viewModel()) {
-    val sauces by viewModel.filteredSauces
-    var pageIndex by remember { mutableIntStateOf(0) }
-    LaunchedEffect(user) {
+fun SauceScreen(
+    navController: NavController,
+    user: UserEntity,
+    viewModel: MainViewModel
+) {
+    val context = LocalContext.current
+
+    // Observăm sosurile favorite
+    val favoriteSauces by viewModel.favoriteSauces.observeAsState(emptyList())
+
+    // Observăm sosurile filtrate după preferințe
+    val filteredSauces by viewModel.filteredSauces.observeAsState(emptyList())
+
+    // Încărcăm sosuri, user și favorite la lansare
+    LaunchedEffect(Unit) {
+        viewModel.loadAllSauces()
         viewModel.updateUser(user)
+        viewModel.loadFavorites(user.username)
     }
+
+    // Paginare
+    var pageIndex by remember { mutableIntStateOf(0) }
     val itemsPerPage = 6
-    val pageCount = (sauces.size + itemsPerPage - 1) / itemsPerPage
-    val currentItems = sauces.drop(pageIndex * itemsPerPage).take(itemsPerPage)
+    val pageCount = (filteredSauces.size + itemsPerPage - 1) / itemsPerPage
+    val currentItems = filteredSauces.drop(pageIndex * itemsPerPage).take(itemsPerPage)
 
     Column(
         modifier = Modifier
@@ -45,10 +50,10 @@ fun SauceScreen(  navController: NavController,
             .padding(16.dp)
     ) {
         Spacer(modifier = Modifier.height(15.dp))
-        Text("🍅 Pasta Sauces:", style = MaterialTheme.typography.headlineSmall)
+        Text("\uD83C\uDF45 Pasta Sauces:", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (sauces.isEmpty()) {
+        if (filteredSauces.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -56,7 +61,7 @@ fun SauceScreen(  navController: NavController,
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "No sauces found in the database\n",
+                    "No sauces match your preferences.",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center
                 )
@@ -72,7 +77,6 @@ fun SauceScreen(  navController: NavController,
             ) {
                 items(currentItems) { sauce ->
                     SauceCard(sauce = sauce, navController = navController)
-
                 }
             }
 
@@ -126,8 +130,7 @@ fun SauceCard(sauce: SauceEntity, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
-            ,
+            .padding(4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -152,14 +155,13 @@ fun SauceCard(sauce: SauceEntity, navController: NavController) {
                         .height(100.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("🍅", style = MaterialTheme.typography.headlineLarge)
+                    Text("\uD83C\uDF45", style = MaterialTheme.typography.headlineLarge)
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(sauce.name, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-
 
             Button(
                 onClick = {
@@ -169,9 +171,6 @@ fun SauceCard(sauce: SauceEntity, navController: NavController) {
             ) {
                 Text("See Ingredients for ${sauce.name}")
             }
-
         }
-
-
     }
 }
