@@ -20,7 +20,7 @@ interface UserDao {
      * @param user The user entity to be inserted.
      */
     @Insert
-    fun insertUser(user: UserEntity)
+    suspend fun insertUser(user: UserEntity)
 
     /**
      * Retrieves a user by their username.
@@ -29,7 +29,7 @@ interface UserDao {
      * @return The [UserEntity] if found, or null otherwise.
      */
     @Query("SELECT * FROM users WHERE username = :username")
-    fun getUserByUsername(username: String): UserEntity?
+    suspend fun getUserByUsername(username: String): UserEntity?
 
     /**
      * Retrieves all users from the database.
@@ -37,7 +37,7 @@ interface UserDao {
      * @return A list of all [UserEntity] objects stored in the users table.
      */
     @Query("SELECT * FROM users")
-    fun getAllUsers(): List<UserEntity>
+    suspend fun getAllUsers(): List<UserEntity>
 
     /**
      * Updates the dietary preferences (vegetarian status and allergens) for a given user.
@@ -47,5 +47,5 @@ interface UserDao {
      * @param allergens A comma-separated list of allergens to avoid.
      */
     @Query("UPDATE users SET isVegetarian = :isVegetarian, allergens = :allergens WHERE username = :username")
-    fun updatePreferences(username: String, isVegetarian: Boolean, allergens: String)
+    suspend fun updatePreferences(username: String, isVegetarian: Boolean, allergens: String)
 }

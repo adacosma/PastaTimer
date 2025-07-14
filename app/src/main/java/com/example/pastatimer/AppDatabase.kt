@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
+import com.example.pastatimer.model.UserFavoriteSauceEntity
 
 
 /**
@@ -15,11 +16,12 @@ import android.content.Context
  *
  * Database version: 9 (with destructive migrations allowed).
  */
-@Database(entities = [PastaTypeEntity::class, SauceEntity::class,  UserEntity::class], version = 9)
+@Database(entities = [PastaTypeEntity::class, SauceEntity::class,  UserEntity::class, UserFavoriteSauceEntity::class], version = 10)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun pastaTypeDao(): PastaTypeDao
     abstract fun sauceDao(): SauceDao
     abstract fun userDao(): UserDao
+    abstract fun userFavoriteSauceDao(): UserFavoriteSauceDao
 
     companion object {
         @Volatile

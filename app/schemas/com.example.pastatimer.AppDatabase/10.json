@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 9,
-    "identityHash": "47e13fdcaa60a5f56a501e6152cbce3b",
+    "version": 10,
+    "identityHash": "2eb3ebbc48dd4c6c78c77a84fcacdad3",
     "entities": [
       {
         "tableName": "pasta_types",
@@ -123,12 +123,39 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "user_favorite_sauces",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`username` TEXT NOT NULL, `sauceId` INTEGER NOT NULL, PRIMARY KEY(`username`, `sauceId`))",
+        "fields": [
+          {
+            "fieldPath": "username",
+            "columnName": "username",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sauceId",
+            "columnName": "sauceId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "username",
+            "sauceId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '47e13fdcaa60a5f56a501e6152cbce3b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2eb3ebbc48dd4c6c78c77a84fcacdad3')"
     ]
   }
 }

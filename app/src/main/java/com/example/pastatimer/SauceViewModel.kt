@@ -1,15 +1,12 @@
 package com.example.pastatimer.viewmodel
 
-import androidx.compose.runtime.*
-import androidx.lifecycle.ViewModel
-import com.example.pastatimer.SauceEntity
-import com.example.pastatimer.UserEntity
-import com.example.pastatimer.defaultSauceList
-import com.example.pastatimer.SauceDao
 import android.app.Application
+import androidx.compose.runtime.*
 import androidx.lifecycle.AndroidViewModel
-import com.example.pastatimer.AppDatabase
-
+import androidx.lifecycle.viewModelScope
+import com.example.pastatimer.*
+import com.example.pastatimer.repository.AppRepository
+import kotlinx.coroutines.launch
 
 /**
  * ViewModel responsible for managing sauce data and user preferences.
@@ -17,13 +14,21 @@ import com.example.pastatimer.AppDatabase
  * Provides:
  * - Retrieval and management of favorite sauces
  * - Filtering of sauces based on user dietary preferences (vegetarian & allergens)
- * - Communication with the Room database via [SauceDao]
- *
- * @constructor Initializes the ViewModel with the application context to access the database.
+ * - Communication with the Room database via [AppRepository]
  */
 class SauceViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val sauceDao: SauceDao = AppDatabase.getDatabase(application).sauceDao()
+    private val repository: AppRepository
+
+    init {
+        val db = AppDatabase.getDatabase(application)
+        repository = AppRepository(
+            db.sauceDao(),
+            db.userDao(),
+            db.pastaTypeDao(),
+            db.userFavoriteSauceDao()
+        )
+    }
 
     var user by mutableStateOf<UserEntity?>(null)
         private set
@@ -34,22 +39,26 @@ class SauceViewModel(application: Application) : AndroidViewModel(application) {
     private val _filteredSauces = mutableStateOf<List<SauceEntity>>(emptyList())
     val filteredSauces: State<List<SauceEntity>> get() = _filteredSauces
 
-    init {
-        loadFavoriteSauces()
+    fun loadFavorites(username: String) {
+        viewModelScope.launch {
+            _favoriteSauces.value = repository.getFavoritesForUser(username)
+        }
     }
 
-    fun loadFavoriteSauces() {
-        _favoriteSauces.value = sauceDao.getFavorites()
+    fun toggleFavorite(username: String, sauce: SauceEntity) {
+        viewModelScope.launch {
+            val isFav = _favoriteSauces.value.any { it.id == sauce.id }
+            if (isFav) {
+                repository.removeFavorite(username, sauce.id)
+            } else {
+                repository.addFavorite(username, sauce.id)
+            }
+            loadFavorites(username)
+        }
     }
 
     fun getAllSauces(): List<SauceEntity> {
-        return sauceDao.getAll()
-    }
-
-    fun toggleFavorite(sauce: SauceEntity) {
-        val newState = !sauce.isFavorite
-        sauceDao.updateFavorite(sauce.id, newState)
-        loadFavoriteSauces()
+        return repository.getAllSauces()
     }
 
     fun updateUser(userEntity: UserEntity) {
@@ -67,7 +76,7 @@ class SauceViewModel(application: Application) : AndroidViewModel(application) {
 
         val vegetarianOnly = currentUser.isVegetarian
 
-        _filteredSauces.value = sauceDao.getAll().filter { sauce ->
+        _filteredSauces.value = repository.getAllSauces().filter { sauce ->
             val ingredients = sauce.ingredients.lowercase()
 
             val containsAllergen = allergens.any { allergen ->

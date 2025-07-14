@@ -10,7 +10,6 @@ data class SauceEntity(
     val name: String,
     val ingredients: String,
     val imageResName: String,
-    val isFavorite: Boolean = false
 
 )
 

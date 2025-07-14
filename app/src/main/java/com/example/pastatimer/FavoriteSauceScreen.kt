@@ -4,13 +4,16 @@ import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -19,33 +22,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.pastatimer.SauceEntity
-import com.example.pastatimer.viewmodel.SauceViewModel
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import com.example.pastatimer.viewmodel.MainViewModel
 
-/**
- * Composable screen that displays the user's favorite sauces.
- *
- * Shows a grid of favorite sauces with options to add new ones or go back to the main menu.
- * Allows toggling favorite status and opens a selection dialog for adding more.
- *
- * @param navController Navigation controller for screen transitions.
- * @param username The current user's username.
- * @param viewModel ViewModel that provides sauce data and favorite management.
- */
 @Composable
 fun FavoriteSauceScreen(
     navController: NavController,
     username: String,
-    viewModel: SauceViewModel = viewModel()
+    viewModel: MainViewModel = viewModel()
 ) {
-    val favoriteSauces by viewModel.favoriteSauces
+    val favoriteSauces by viewModel.favoriteSauces.observeAsState(emptyList())
     var showDialog by remember { mutableStateOf(false) }
 
     val allSauces = remember { mutableStateListOf<SauceEntity>() }
 
     LaunchedEffect(Unit) {
+        viewModel.loadFavorites(username)
         allSauces.clear()
         allSauces.addAll(viewModel.getAllSauces())
     }
@@ -55,11 +46,7 @@ fun FavoriteSauceScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 16.dp) // 👈 împinge titlul în jos
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             Text(
                 "❤️ Favorite Sauces",
                 style = MaterialTheme.typography.headlineSmall,
@@ -71,7 +58,7 @@ fun FavoriteSauceScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
-                    contentAlignment = Alignment.Center // 👈 pe mijloc vertical și orizontal
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         "No favorite sauces yet.\nTap 'Add New' to choose one.",
@@ -93,7 +80,7 @@ fun FavoriteSauceScreen(
                             sauce = sauce,
                             navController = navController,
                             onToggleFavorite = {
-                                viewModel.toggleFavorite(sauce)
+                                viewModel.toggleFavorite(username, sauce)
                             }
                         )
                     }
@@ -127,9 +114,11 @@ fun FavoriteSauceScreen(
 
         if (showDialog) {
             SauceSelectionDialog(
-                allSauces = allSauces.filter { !it.isFavorite },
+                allSauces = allSauces.filter { sauce ->
+                    favoriteSauces.none { it.id == sauce.id }
+                },
                 onSelect = {
-                    viewModel.toggleFavorite(it)
+                    viewModel.toggleFavorite(username, it)
                     showDialog = false
                 },
                 onDismiss = { showDialog = false }
@@ -208,15 +197,17 @@ fun SauceSelectionDialog(
         confirmButton = {},
         title = { Text("Select a Sauce") },
         text = {
-            LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
-                items(allSauces) { sauce ->
-                    Text(
-                        text = sauce.name,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(sauce) }
-                            .padding(8.dp)
-                    )
+            Column {
+                LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
+                    items(allSauces) { sauce ->
+                        Text(
+                            text = sauce.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelect(sauce) }
+                                .padding(8.dp)
+                        )
+                    }
                 }
             }
         }
