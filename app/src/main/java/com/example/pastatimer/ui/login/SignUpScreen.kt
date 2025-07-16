@@ -3,48 +3,63 @@ package com.example.pastatimer.ui.login
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.launch
+import com.example.pastatimer.viewmodel.MainViewModel
+import com.example.pastatimer.viewmodel.AuthResult
 import kotlinx.coroutines.delay
-import androidx.compose.ui.platform.LocalContext
-import com.example.pastatimer.AppDatabase
-import com.example.pastatimer.UserEntity
 
 /**
- * Composable screen that handles the **user registration** (sign up) process.
+ * Composable screen that handles user registration following MVVM pattern.
  *
- * - Collects username and password input from the user.
- * - Validates input (non-empty username, matching passwords).
- * - Interacts with the local Room database to create a new account if the username is unique.
- * - Shows feedback via Snackbars and navigates to the login screen after success.
- *
- */
-
-/**
- * Composable function that displays the Sign-Up screen.
- *
- * Allows users to register a new account by providing a username and matching passwords.
- * Verifies input, checks for username uniqueness using Room database,
- * and navigates back to the login screen upon successful registration.
+ * Uses MainViewModel to manage registration logic, provides real-time feedback,
+ * and handles navigation upon successful registration.
  *
  * @param navController The navigation controller used to navigate between screens.
+ * @param viewModel The MainViewModel handling authentication logic.
  */
 @Composable
-fun SignUpScreen(navController: NavController) {
+fun SignUpScreen(
+    navController: NavController,
+    viewModel: MainViewModel
+) {
     var user by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    // observe results by viewmodel instead of accessing the database directly
+    val signUpResult by viewModel.authSignUpResult.observeAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
 
-    val context = LocalContext.current
-    val db = AppDatabase.getDatabase(context)
-    val userDao = db.userDao()
+    LaunchedEffect(signUpResult) {
+        signUpResult?.let { result ->
+            when (result) {
+                is AuthResult.Success -> {
+                    snackbarHostState.showSnackbar(
+                        message = "Account created successfully!",
+                        duration = SnackbarDuration.Short
+                    )
+                    delay(300)
+                    navController.navigate("login") {
+                        popUpTo("sign up") { inclusive = true }
+                    }
+                }
+                is AuthResult.Error -> {
+                    snackbarHostState.showSnackbar(
+                        message = result.message,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                is AuthResult.Loading -> {
+                    // Loading state
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -54,7 +69,7 @@ fun SignUpScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Create new account",
+            text = "Create New Account",
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(bottom = 32.dp)
         )
@@ -62,10 +77,11 @@ fun SignUpScreen(navController: NavController) {
         OutlinedTextField(
             value = user,
             onValueChange = { user = it },
-            label = { Text("User") },
+            label = { Text("Username") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 8.dp),
+            enabled = signUpResult !is AuthResult.Loading
         )
 
         OutlinedTextField(
@@ -75,7 +91,8 @@ fun SignUpScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            enabled = signUpResult !is AuthResult.Loading
         )
 
         OutlinedTextField(
@@ -85,56 +102,71 @@ fun SignUpScreen(navController: NavController) {
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = 8.dp),
+            enabled = signUpResult !is AuthResult.Loading,
+            isError = confirmPassword.isNotEmpty() && password != confirmPassword
         )
+
+        // Password strength indicator
+        if (password.isNotEmpty()) {
+            Text(
+                text = when {
+                    password.length < 4 -> "Password too short (min 4 characters)"
+                    password.length < 6 -> "Password strength: Weak"
+                    password.length < 8 -> "Password strength: Medium"
+                    else -> "Password strength: Strong"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = when {
+                    password.length < 4 -> MaterialTheme.colorScheme.error
+                    password.length < 6 -> MaterialTheme.colorScheme.secondary
+                    else -> MaterialTheme.colorScheme.primary
+                },
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
 
         Button(
             onClick = {
-                if (user.isBlank()) {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Username cannot be empty",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                } else if (password != confirmPassword || password.isBlank()) {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Passwords do not match",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                } else {
-                    coroutineScope.launch {
-                        val existingUser = userDao.getUserByUsername(user)
-                        if (existingUser == null) {
-                            val newUser = UserEntity(
-                                username = user,
-                                password = password,
-                                isVegetarian = false,
-                                allergens = ""
-                            )
-                            userDao.insertUser(newUser)
-                            snackbarHostState.showSnackbar(
-                                message = "Account created successfully",
-                                duration = SnackbarDuration.Short
-                            )
-                            delay(300)
-                            navController.navigate("login")
-                        } else {
-                            snackbarHostState.showSnackbar(
-                                message = "Username already exists",
-                                duration = SnackbarDuration.Short
-                            )
-                        }
-                    }
-                }
+                viewModel.signUp(user, password, confirmPassword)
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp)
+                .padding(top = 24.dp),
+            enabled = signUpResult !is AuthResult.Loading
         ) {
+            // Loading indicator
+            if (signUpResult is AuthResult.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Text("Sign Up")
+        }
+
+        // Link to login
+        Row(
+            modifier = Modifier.padding(top = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Already have an account?")
+            Spacer(modifier = Modifier.width(4.dp))
+            TextButton(
+                onClick = {
+                    navController.navigate("login") {
+                        popUpTo("sign up") { inclusive = true }
+                    }
+                },
+                enabled = signUpResult !is AuthResult.Loading
+            ) {
+                Text(
+                    text = "Log In",
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
         MySnackbar(snackbarHostState = snackbarHostState)

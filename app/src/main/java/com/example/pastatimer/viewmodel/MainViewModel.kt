@@ -12,6 +12,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+sealed class AuthResult {
+    object Success : AuthResult()
+    data class Error(val message: String) : AuthResult()
+    object Loading : AuthResult()
+}
+
 class MainViewModel(
     application: Application,
     private val repository: AppRepository
@@ -36,6 +42,111 @@ class MainViewModel(
     private val _filteredSauces = MutableLiveData<List<SauceEntity>>()
     val filteredSauces: LiveData<List<SauceEntity>> = _filteredSauces
 
+    // LiveData for login results
+    private val _authLoginResult = MutableLiveData<AuthResult>()
+    val authLoginResult: LiveData<AuthResult> = _authLoginResult
+
+    // LiveData for signup results
+    private val _authSignUpResult = MutableLiveData<AuthResult>()
+    val authSignUpResult: LiveData<AuthResult> = _authSignUpResult
+
+    // LiveData for user preferences
+    private val _preferencesUpdateResult = MutableLiveData<AuthResult>()
+    val preferencesUpdateResult: LiveData<AuthResult> = _preferencesUpdateResult
+
+    fun login(username: String, password: String) {
+        // validate input
+        if (username.isBlank() || password.isBlank()) {
+            _authLoginResult.value = AuthResult.Error("Username and password cannot be empty")
+            return
+        }
+
+        _authLoginResult.value = AuthResult.Loading
+
+
+        viewModelScope.launch {
+            try {
+                val user = repository.getUserByUsername(username)
+                when {
+                    user == null -> {
+                        _authLoginResult.value = AuthResult.Error("Username not found")
+                    }
+                    user.password != password -> {
+                        _authLoginResult.value = AuthResult.Error("Incorrect password")
+                    }
+                    else -> {
+                        _user.value = user // set current user
+                        _authLoginResult.value = AuthResult.Success
+                    }
+                }
+            } catch (e: Exception) {
+                _authLoginResult.value = AuthResult.Error("Login failed: ${e.message}")
+            }
+        }
+    }
+
+    fun signUp(username: String, password: String, confirmPassword: String) {
+        // validate input
+        when {
+            username.isBlank() -> {
+                _authSignUpResult.value = AuthResult.Error("Username cannot be empty")
+                return
+            }
+            password.isBlank() -> {
+                _authSignUpResult.value = AuthResult.Error("Password cannot be empty")
+                return
+            }
+            password != confirmPassword -> {
+                _authSignUpResult.value = AuthResult.Error("Passwords do not match")
+                return
+            }
+            password.length < 4 -> {
+                _authSignUpResult.value = AuthResult.Error("Password must be at least 4 characters")
+                return
+            }
+        }
+
+        _authSignUpResult.value = AuthResult.Loading
+
+        viewModelScope.launch {
+            try {
+                val existingUser = repository.getUserByUsername(username)
+                if (existingUser != null) {
+                    _authSignUpResult.value = AuthResult.Error("Username already exists")
+                } else {
+                    val newUser = UserEntity(
+                        username = username,
+                        password = password,
+                        isVegetarian = false,
+                        allergens = ""
+                    )
+                    repository.insertUser(newUser)
+                    _authSignUpResult.value = AuthResult.Success
+                }
+            } catch (e: Exception) {
+                _authSignUpResult.value = AuthResult.Error("Registration failed: ${e.message}")
+            }
+        }
+    }
+
+    fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String) {
+        viewModelScope.launch {
+            val currentUser = repository.getUserByUsername(username)
+            if (currentUser != null) {
+                // create updated user
+                val updatedUser = currentUser.copy(
+                    isVegetarian = isVegetarian,
+                    allergens = allergens
+                )
+                // insert updated user in database
+                repository.insertUser(updatedUser)
+
+                // update user in viewmodel
+                _user.value = updatedUser
+                filterSauces()
+            }
+        }
+    }
 
     // Încarcă toate tipurile de paste
     fun loadPastaTypes() {

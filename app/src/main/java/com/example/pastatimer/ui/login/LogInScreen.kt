@@ -3,38 +3,63 @@ package com.example.pastatimer.ui.login
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.pastatimer.AppDatabase
-import kotlinx.coroutines.launch
+import com.example.pastatimer.viewmodel.MainViewModel
+import com.example.pastatimer.viewmodel.AuthResult
 
-/*
- * Composable function that displays the Log In screen.
+/**
+ * Composable function that displays the Log In screen following MVVM pattern.
  *
- * Allows the user to enter their username and password,
- * checks credentials using Room database,
- * and navigates to the home screen if authentication is successful.
+ * Uses MainViewModel to handle authentication logic, keeps UI clean,
+ * and observes authentication results through LiveData.
  *
  * @param navController The navigation controller used for route navigation.
+ * @param viewModel The MainViewModel handling authentication logic.
  */
 
 @Composable
-fun LogInScreen(navController: NavController) {
+fun LogInScreen(
+    navController: NavController,
+    viewModel: MainViewModel
+) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
-    val db = AppDatabase.getDatabase(context)
-    val userDao = db.userDao()
+    // Observă rezultatele din ViewModel în loc să accesezi direct DB
+    val loginResult by viewModel.authLoginResult.observeAsState()
+    val currentUser by viewModel.user.observeAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(loginResult) {
+        loginResult?.let { result ->
+            when (result) {
+                is AuthResult.Success -> {
+                    currentUser?.let { user ->
+                        navController.navigate("home/${user.username}") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                }
+                is AuthResult.Error -> {
+                    snackbarHostState.showSnackbar(
+                        message = result.message,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                is AuthResult.Loading -> {
+                    // Loading state
+                }
+            }
+        }
+    }
 
     Column (
         modifier = Modifier
@@ -53,10 +78,11 @@ fun LogInScreen(navController: NavController) {
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("user") },
+            label = { Text("Username") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 8.dp),
+            enabled = loginResult !is AuthResult.Loading
         )
 
         OutlinedTextField(
@@ -66,32 +92,28 @@ fun LogInScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            enabled = loginResult !is AuthResult.Loading
         )
 
         Button(
             onClick = {
-                coroutineScope.launch {
-                    val user = userDao.getUserByUsername(username)
-                    if (user == null) {
-                        snackbarHostState.showSnackbar(
-                            message = "Username not found",
-                            duration = SnackbarDuration.Short
-                        )
-                    } else if (user.password != password) {
-                        snackbarHostState.showSnackbar(
-                            message = "Incorrect password",
-                            duration = SnackbarDuration.Short
-                        )
-                    } else {
-                        navController.navigate("home/$username")
-                    }
-                }
+                // Simplu apel la ViewModel
+                viewModel.login(username, password)
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp)
+                .padding(top = 24.dp),
+            enabled = loginResult !is AuthResult.Loading
         ) {
+            // Loading indicator
+            if (loginResult is AuthResult.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Text("Log In")
         }
 
@@ -102,7 +124,10 @@ fun LogInScreen(navController: NavController) {
         ) {
             Text("Don't have an account?")
             Spacer(modifier = Modifier.width(4.dp))
-            TextButton(onClick = { navController.navigate("sign up") }) {
+            TextButton(
+                onClick = { navController.navigate("sign up") },
+                enabled = loginResult !is AuthResult.Loading
+            ) {
                 Text(
                     text = "Sign Up",
                     color = MaterialTheme.colorScheme.primary
@@ -110,13 +135,5 @@ fun LogInScreen(navController: NavController) {
             }
         }
         MySnackbar(snackbarHostState = snackbarHostState)
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    com.example.pastatimer.ui.theme.PastaTimerTheme {
-        LogInScreen(navController = rememberNavController())
     }
 }

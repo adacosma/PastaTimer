@@ -18,7 +18,6 @@ fun NavGraph() {
     val navController = rememberNavController()
     val context = LocalContext.current.applicationContext as Application
 
-    // 1. Inițializare DB și Repository
     val db = AppDatabase.getDatabase(context)
     val repository = remember {
         AppRepository(
@@ -29,17 +28,17 @@ fun NavGraph() {
         )
     }
 
-    // 2. Creezi instanța de ViewModel cu factory-ul tău
     val mainViewModel: MainViewModel = viewModel(
         factory = MainViewModelFactory(context, repository)
     )
 
-
-
     NavHost(navController = navController, startDestination = "login") {
-        composable("login") { LogInScreen(navController) }
-
-        composable("sign up") { SignUpScreen(navController) }
+        composable("login") {
+            LogInScreen(navController, mainViewModel)
+        }
+        composable("sign up") {
+            SignUpScreen(navController, mainViewModel)
+        }
 
         composable("allergens/{username}") { backStackEntry ->
             val username = backStackEntry.arguments?.getString("username") ?: ""
