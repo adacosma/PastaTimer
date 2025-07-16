@@ -11,7 +11,6 @@ import com.example.pastatimer.ui.login.*
 import com.example.pastatimer.ui.menu.MainMenu
 import com.example.pastatimer.ui.screens.PastaScreen
 import com.example.pastatimer.viewmodel.*
-import androidx.lifecycle.ViewModelProvider
 
 @Composable
 fun NavGraph() {
@@ -43,7 +42,7 @@ fun NavGraph() {
 
         composable("allergens/{username}") { backStackEntry ->
             val username = backStackEntry.arguments?.getString("username") ?: ""
-            PersonaliseSuggestions(navController, username)
+            PersonaliseSuggestions(navController, username, mainViewModel)
         }
 
         composable("home/{username}") { backStackEntry ->

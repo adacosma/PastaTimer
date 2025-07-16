@@ -26,4 +26,6 @@ class AppRepository(
         UserFavoriteSauceEntity(username, sauceId)
     )
     override suspend fun removeFavorite(username: String, sauceId: Int) = userFavoriteSauceDao.removeFavorite(username, sauceId)
+    override suspend fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String) =
+        userDao.updatePreferences(username, isVegetarian, allergens)
 }

@@ -3,43 +3,57 @@ package com.example.pastatimer.ui.login
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.pastatimer.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
-import androidx.compose.ui.platform.LocalContext
-import com.example.pastatimer.AppDatabase
 
 /**
  * Composable function that renders a screen allowing the user to personalize
- * their dietary preferences and allergens.
+ * their dietary preferences and allergens following MVVM pattern.
  *
- * - Loads current preferences from the database for the given username.
- * - Allows the user to select allergens and toggle vegetarian preference.
- * - On saving, updates the database and navigates back to the home screen.
+ * Uses MainViewModel to handle preference updates and user data loading.
  *
- * @param username The username of the currently logged-in user, used to load and update preferences.
+ * @param username The username of the currently logged-in user.
+ * @param navController Navigation controller for screen transitions.
+ * @param viewModel MainViewModel for handling preferences logic.
  */
 
-
 @Composable
-fun PersonaliseSuggestions(navController: NavController, username: String) {
+fun PersonaliseSuggestions(
+    navController: NavController,
+    username: String,
+    viewModel: MainViewModel
+) {
     val allergensList = listOf("Milk", "Eggs", "Nuts", "Soy", "Fish")
     val selectedAllergens = remember { mutableStateListOf<String>() }
     var isVegetarian by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
-    val db = AppDatabase.getDatabase(context)
-    val userDao = db.userDao()
+    // get current user from viewModel
+    val currentUser by viewModel.user.observeAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
-        val user = userDao.getUserByUsername(username)
-        user?.let {
-            isVegetarian = it.isVegetarian
+    // get current preferences
+    LaunchedEffect(username) {
+        if (currentUser?.username != username) {
+            val user = viewModel.getUserByUsername(username)
+            user?.let { viewModel.updateUser(it) }
+        }
+    }
+
+    // update ui based on current user preferences
+    LaunchedEffect(currentUser) {
+        currentUser?.let { user ->
+            isVegetarian = user.isVegetarian
             selectedAllergens.clear()
-            selectedAllergens.addAll(it.allergens.split(",").filter { it.isNotBlank() })
+            selectedAllergens.addAll(
+                user.allergens.split(",").filter { it.isNotBlank() }
+            )
         }
     }
 
@@ -95,18 +109,24 @@ fun PersonaliseSuggestions(navController: NavController, username: String) {
         }
 
         Button(onClick = {
+            val allergensString = selectedAllergens.joinToString(",")
+            viewModel.updateUserPreferences(username, isVegetarian, allergensString)
+
             coroutineScope.launch {
-                val allergensString = selectedAllergens.joinToString(",")
-                userDao.updatePreferences(
-                    username = username,
-                    isVegetarian = isVegetarian,
-                    allergens = allergensString
+                snackbarHostState.showSnackbar(
+                    message = "Preferences saved successfully!",
+                    duration = SnackbarDuration.Short
                 )
-                val updatedUser = userDao.getUserByUsername(username)
+                kotlinx.coroutines.delay(300)
                 navController.navigate("home/${username}")
             }
         }) {
             Text("Save Preferences")
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.padding(top = 16.dp)
+        )
     }
 }

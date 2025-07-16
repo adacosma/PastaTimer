@@ -14,4 +14,5 @@ interface IAppRepository {
     suspend fun insertSauces(sauces: List<SauceEntity>)
     suspend fun addFavorite(username: String, sauceId: Int)
     suspend fun removeFavorite(username: String, sauceId: Int)
+    suspend fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String)
 }

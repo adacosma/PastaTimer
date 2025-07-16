@@ -52,10 +52,6 @@ class MainViewModel(
     private val _authSignUpResult = MutableLiveData<AuthResult>()
     val authSignUpResult: LiveData<AuthResult> = _authSignUpResult
 
-    // LiveData for user preferences
-    //private val _preferencesUpdateResult = MutableLiveData<AuthResult>()
-    //val preferencesUpdateResult: LiveData<AuthResult> = _preferencesUpdateResult
-
     fun login(username: String, password: String) {
         // validate input
         if (username.isBlank() || password.isBlank()) {
@@ -131,24 +127,17 @@ class MainViewModel(
         }
     }
 
-    /*fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String) {
+    fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String) {
         viewModelScope.launch {
-            val currentUser = repository.getUserByUsername(username)
-            if (currentUser != null) {
-                // create updated user
-                val updatedUser = currentUser.copy(
-                    isVegetarian = isVegetarian,
-                    allergens = allergens
-                )
-                // insert updated user in database
-                repository.insertUser(updatedUser)
+            // Folosește metoda specifică de update
+            repository.updateUserPreferences(username, isVegetarian, allergens)
 
-                // update user in viewmodel
-                _user.value = updatedUser
-                filterSauces()
-            }
+            // Reîncarcă user-ul
+            val updatedUser = repository.getUserByUsername(username)
+            _user.value = updatedUser
+            filterSauces()
         }
-    }*/
+    }
 
     // Încarcă toate tipurile de paste
     fun loadPastaTypes() {
@@ -179,20 +168,6 @@ class MainViewModel(
         }
     }
 
-
-    // Adaugă sau elimină un sos din favorite
-//     fun toggleFavorite(username: String, sauce: SauceEntity) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            val isFavorite = repository.getFavoritesForUser(username).any { it.id == sauce.id }
-//            if (isFavorite) {
-//                repository.removeFavorite(username, sauce.id)
-//            } else {
-//                repository.addFavorite(username, sauce.id)
-//            }
-//            loadFavorites(username)
-//        }
-//    }
-
     fun toggleFavorite(username: String, sauce: SauceEntity) {
         viewModelScope.launch(ioDispatcher) {
             val isFavorite = repository.getFavoritesForUser(username).any { it.id == sauce.id }
@@ -217,26 +192,20 @@ class MainViewModel(
         return repository.getUserByUsername(username)
     }
 
-    // Inserează un nou utilizator
-    /*fun insertUser(user: UserEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.insertUser(user)
-        }
-    }*/
 
     // Inserează tipuri de paste
-    /*fun insertPastaTypes(types: List<PastaTypeEntity>) {
+    fun insertPastaTypes(types: List<PastaTypeEntity>) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.insertPastaTypes(types)
         }
-    }*/
+    }
 
     // Inserează sosuri
-    /*fun insertSauces(sauces: List<SauceEntity>) {
+    fun insertSauces(sauces: List<SauceEntity>) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.insertSauces(sauces)
         }
-    }*/
+    }
 
     private val _timeLeft = MutableLiveData<Int>()
     val timeLeft: LiveData<Int> get() = _timeLeft
