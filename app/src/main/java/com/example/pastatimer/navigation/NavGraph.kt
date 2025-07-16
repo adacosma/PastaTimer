@@ -32,6 +32,10 @@ fun NavGraph() {
         factory = MainViewModelFactory(context, repository)
     )
 
+    LaunchedEffect(Unit) {
+        mainViewModel.populateDatabaseIfEmpty()
+    }
+
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             LogInScreen(navController, mainViewModel)

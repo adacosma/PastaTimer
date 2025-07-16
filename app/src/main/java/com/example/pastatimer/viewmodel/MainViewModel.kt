@@ -5,6 +5,9 @@ import androidx.lifecycle.*
 import com.example.pastatimer.PastaTypeEntity
 import com.example.pastatimer.SauceEntity
 import com.example.pastatimer.UserEntity
+import com.example.pastatimer.defaultPastaList
+import com.example.pastatimer.defaultSauceList
+import com.example.pastatimer.repository.AppRepository
 import com.example.pastatimer.repository.IAppRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +27,22 @@ class MainViewModel(
     private val repository: IAppRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : AndroidViewModel(application) {
+
+    fun populateDatabaseIfEmpty() {
+        viewModelScope.launch(ioDispatcher) {
+            val pastaList = repository.getAllPastaTypes()
+            val sauceList = repository.getAllSauces()
+
+            if (pastaList.isEmpty()) {
+                repository.insertPastaTypes(defaultPastaList)
+            }
+
+            if (sauceList.isEmpty()) {
+                repository.insertSauces(defaultSauceList)
+            }
+        }
+    }
+
 
     // LiveData pentru tipurile de paste
     private val _pastaTypes = MutableLiveData<List<PastaTypeEntity>>()

@@ -1,0 +1,230 @@
+Index: app/src/test/java/com/example/pastatimer/SauceViewModelTest.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>//package com.example.pastatimer\r\n//\r\n//import com.example.pastatimer.SauceEntity\r\n//import com.example.pastatimer.UserEntity\r\n//import com.example.pastatimer.viewmodel.SauceViewModel\r\n//import org.junit.Assert.assertEquals\r\n//import org.junit.Test\r\n//\r\n//class SauceViewModelTest {\r\n//    private val testSauces = listOf(\r\n//        SauceEntity(name = \"Tomato\", ingredients = \"tomato, garlic, olive oil\", imageResName = \"tomato\"),\r\n//        SauceEntity(name = \"Cheesy\", ingredients = \"milk, parmesan, garlic\", imageResName =  \"cheese\"),\r\n//        SauceEntity(name = \"Carbonara\", ingredients = \"egg, cheese, bacon\", imageResName =  \"carbonara\"),\r\n//        SauceEntity(name = \"Bolognese\", ingredients = \"beef, tomato, onion\", imageResName =  \"bolognese\"),\r\n//        SauceEntity(name = \"Pesto\", ingredients = \"basil, olive oil\", imageResName = \"pesto\")\r\n//    )\r\n//\r\n//    @Test\r\n//    fun test_filter_by_allergens_only() {\r\n//        val user = UserEntity(\"ana\", \"123\", allergens = \"milk\", isVegetarian = false)\r\n//        val vm = SauceViewModel(testSauces)\r\n//        vm.updateUser(user)\r\n//\r\n//        val result = vm.filteredSauces.value.map { it.name }\r\n//        assertEquals(listOf(\"Tomato\", \"Bolognese\", \"Pesto\"), result)\r\n//    }\r\n//\r\n//    @Test\r\n//    fun test_filter_by_vegan_only() {\r\n//        val user = UserEntity(\"maria\", \"pass\", allergens = \"\", isVegetarian = true)\r\n//        val vm = SauceViewModel(testSauces)\r\n//        vm.updateUser(user)\r\n//\r\n//        val result = vm.filteredSauces.value.map { it.name }\r\n//        assertEquals(listOf(\"Tomato\", \"Cheesy\", \"Pesto\"), result)\r\n//    }\r\n//\r\n//    @Test\r\n//    fun test_filter_by_vegetarian_and_allergens() {\r\n//        val user = UserEntity(\"dan\", \"abc\", allergens = \"garlic\", isVegetarian = true)\r\n//        val vm = SauceViewModel(testSauces)\r\n//        vm.updateUser(user)\r\n//\r\n//        val result = vm.filteredSauces.value.map { it.name }\r\n//        assertEquals(listOf(\"Pesto\"), result)\r\n//    }\r\n//\r\n//    @Test\r\n//    fun test_all_sauces_filtered_out() {\r\n//        val user =\r\n//            UserEntity(\"ella\", \"xyz\", allergens = \"tomato, garlic, milk, beef, egg, basil\", isVegetarian = false)\r\n//        val vm = SauceViewModel(testSauces)\r\n//        vm.updateUser(user)\r\n//\r\n//        val result = vm.filteredSauces.value.map { it.name }\r\n//        assertEquals(emptyList<String>(), result)\r\n//    }\r\n//}\r\npackage com.example.pastatimer\r\n\r\nimport org.junit.Assert.assertEquals\r\nimport org.junit.Test\r\n\r\nclass SauceViewModelTest {\r\n\r\n    // Creem un SauceViewModel modificat pentru teste care nu depinde de Android\r\n    private class TestSauceViewModel(private val testSauces: List<SauceEntity>) {\r\n\r\n        var user: UserEntity? = null\r\n            private set\r\n\r\n        var filteredSauces: List<SauceEntity> = emptyList()\r\n            private set\r\n\r\n        fun updateUser(userEntity: UserEntity) {\r\n            user = userEntity\r\n            filterSauces()\r\n        }\r\n\r\n        private fun filterSauces() {\r\n            val currentUser = user ?: return\r\n\r\n            val allergens = currentUser.allergens\r\n                .split(\",\")\r\n                .map { it.trim().lowercase() }\r\n                .filter { it.isNotBlank() }\r\n\r\n            val vegetarianOnly = currentUser.isVegetarian\r\n\r\n            filteredSauces = testSauces.filter { sauce ->\r\n                val ingredients = sauce.ingredients.lowercase()\r\n\r\n                val containsAllergen = allergens.any { allergen ->\r\n                    allergenMap[allergen]?.any { ingredients.contains(it) } ?: ingredients.contains(allergen)\r\n                }\r\n\r\n                val hasMeat = containsMeat(ingredients)\r\n                val isVegetarianOk = !vegetarianOnly || !hasMeat\r\n\r\n                !containsAllergen && isVegetarianOk\r\n            }\r\n        }\r\n\r\n        private fun containsMeat(ingredients: String): Boolean {\r\n            val meat = listOf(\"beef\", \"pork\", \"chicken\", \"bacon\", \"meat\", \"ham\", \"sausage\", \"anchovies\")\r\n            return meat.any { ingredients.contains(it) }\r\n        }\r\n\r\n        private val allergenMap = mapOf(\r\n            \"milk\" to listOf(\"milk\", \"cheese\", \"cream\", \"parmesan\", \"mozzarella\", \"cheddar\", \"pecorino\", \"gorgonzola\", \"butter\", \"dairy\", \"yogurt\"),\r\n            \"eggs\" to listOf(\"egg\", \"eggs\", \"egg yolk\", \"egg white\"),\r\n            \"nuts\" to listOf(\"almond\", \"hazelnut\", \"walnut\", \"cashew\", \"nut\"),\r\n            \"fish\" to listOf(\"fish\", \"anchovies\", \"salmon\", \"tuna\"),\r\n            \"soy\" to listOf(\"soy\", \"soy sauce\", \"tofu\")\r\n        )\r\n    }\r\n\r\n    private val testSauces = listOf(\r\n        SauceEntity(id = 1, name = \"Tomato\", ingredients = \"tomato, garlic, olive oil\", imageResName = \"tomato\", isFavorite = false),\r\n        SauceEntity(id = 2, name = \"Cheesy\", ingredients = \"milk, parmesan, garlic\", imageResName = \"cheese\", isFavorite = false),\r\n        SauceEntity(id = 3, name = \"Carbonara\", ingredients = \"egg, cheese, bacon\", imageResName = \"carbonara\", isFavorite = false),\r\n        SauceEntity(id = 4, name = \"Bolognese\", ingredients = \"beef, tomato, onion\", imageResName = \"bolognese\", isFavorite = false),\r\n        SauceEntity(id = 5, name = \"Pesto\", ingredients = \"basil, olive oil\", imageResName = \"pesto\", isFavorite = false)\r\n    )\r\n\r\n    @Test\r\n    fun test_filter_by_allergens_only() {\r\n        val user = UserEntity(\"ana\", \"123\", allergens = \"milk\", isVegetarian = false)\r\n        val vm = TestSauceViewModel(testSauces)\r\n        vm.updateUser(user)\r\n\r\n        val result = vm.filteredSauces.map { it.name }\r\n        assertEquals(listOf(\"Tomato\", \"Bolognese\", \"Pesto\"), result)\r\n    }\r\n\r\n    @Test\r\n    fun test_filter_by_vegan_only() {\r\n        val user = UserEntity(\"maria\", \"pass\", allergens = \"\", isVegetarian = true)\r\n        val vm = TestSauceViewModel(testSauces)\r\n        vm.updateUser(user)\r\n\r\n        val result = vm.filteredSauces.map { it.name }\r\n        assertEquals(listOf(\"Tomato\", \"Cheesy\", \"Pesto\"), result)\r\n    }\r\n\r\n    @Test\r\n    fun test_filter_by_vegetarian_and_allergens() {\r\n        val user = UserEntity(\"dan\", \"abc\", allergens = \"garlic\", isVegetarian = true)\r\n        val vm = TestSauceViewModel(testSauces)\r\n        vm.updateUser(user)\r\n\r\n        val result = vm.filteredSauces.map { it.name }\r\n        assertEquals(listOf(\"Pesto\"), result)\r\n    }\r\n\r\n    @Test\r\n    fun test_all_sauces_filtered_out() {\r\n        val user = UserEntity(\"ella\", \"xyz\", allergens = \"tomato, garlic, milk, beef, egg, basil\", isVegetarian = false)\r\n        val vm = TestSauceViewModel(testSauces)\r\n        vm.updateUser(user)\r\n\r\n        val result = vm.filteredSauces.map { it.name }\r\n        assertEquals(emptyList<String>(), result)\r\n    }\r\n}
+===================================================================
+diff --git a/app/src/test/java/com/example/pastatimer/SauceViewModelTest.kt b/app/src/test/java/com/example/pastatimer/SauceViewModelTest.kt
+--- a/app/src/test/java/com/example/pastatimer/SauceViewModelTest.kt	(revision 01d71db9f7f5241c7b8cbcc0fed08974b0562d25)
++++ b/app/src/test/java/com/example/pastatimer/SauceViewModelTest.kt	(date 1752669232529)
+@@ -1,165 +1,90 @@
+-//package com.example.pastatimer
+-//
+-//import com.example.pastatimer.SauceEntity
+-//import com.example.pastatimer.UserEntity
+-//import com.example.pastatimer.viewmodel.SauceViewModel
+-//import org.junit.Assert.assertEquals
+-//import org.junit.Test
+-//
+-//class SauceViewModelTest {
+-//    private val testSauces = listOf(
+-//        SauceEntity(name = "Tomato", ingredients = "tomato, garlic, olive oil", imageResName = "tomato"),
+-//        SauceEntity(name = "Cheesy", ingredients = "milk, parmesan, garlic", imageResName =  "cheese"),
+-//        SauceEntity(name = "Carbonara", ingredients = "egg, cheese, bacon", imageResName =  "carbonara"),
+-//        SauceEntity(name = "Bolognese", ingredients = "beef, tomato, onion", imageResName =  "bolognese"),
+-//        SauceEntity(name = "Pesto", ingredients = "basil, olive oil", imageResName = "pesto")
+-//    )
+-//
+-//    @Test
+-//    fun test_filter_by_allergens_only() {
+-//        val user = UserEntity("ana", "123", allergens = "milk", isVegetarian = false)
+-//        val vm = SauceViewModel(testSauces)
+-//        vm.updateUser(user)
+-//
+-//        val result = vm.filteredSauces.value.map { it.name }
+-//        assertEquals(listOf("Tomato", "Bolognese", "Pesto"), result)
+-//    }
+-//
+-//    @Test
+-//    fun test_filter_by_vegan_only() {
+-//        val user = UserEntity("maria", "pass", allergens = "", isVegetarian = true)
+-//        val vm = SauceViewModel(testSauces)
+-//        vm.updateUser(user)
+-//
+-//        val result = vm.filteredSauces.value.map { it.name }
+-//        assertEquals(listOf("Tomato", "Cheesy", "Pesto"), result)
+-//    }
+-//
+-//    @Test
+-//    fun test_filter_by_vegetarian_and_allergens() {
+-//        val user = UserEntity("dan", "abc", allergens = "garlic", isVegetarian = true)
+-//        val vm = SauceViewModel(testSauces)
+-//        vm.updateUser(user)
+-//
+-//        val result = vm.filteredSauces.value.map { it.name }
+-//        assertEquals(listOf("Pesto"), result)
+-//    }
+-//
+-//    @Test
+-//    fun test_all_sauces_filtered_out() {
+-//        val user =
+-//            UserEntity("ella", "xyz", allergens = "tomato, garlic, milk, beef, egg, basil", isVegetarian = false)
+-//        val vm = SauceViewModel(testSauces)
+-//        vm.updateUser(user)
+-//
+-//        val result = vm.filteredSauces.value.map { it.name }
+-//        assertEquals(emptyList<String>(), result)
+-//    }
+-//}
+-package com.example.pastatimer
++package com.example.pastatimer.viewmodel
+ 
++import android.app.Application
++import androidx.arch.core.executor.testing.InstantTaskExecutorRule
++import androidx.lifecycle.Observer
++import com.example.pastatimer.SauceEntity
++import com.example.pastatimer.UserEntity
++import com.example.pastatimer.repository.AppRepository
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.ExperimentalCoroutinesApi
++import kotlinx.coroutines.test.*
++import org.junit.*
+ import org.junit.Assert.assertEquals
+-import org.junit.Test
+-
+-class SauceViewModelTest {
+-
+-    // Creem un SauceViewModel modificat pentru teste care nu depinde de Android
+-    private class TestSauceViewModel(private val testSauces: List<SauceEntity>) {
+-
+-        var user: UserEntity? = null
+-            private set
+-
+-        var filteredSauces: List<SauceEntity> = emptyList()
+-            private set
++import org.mockito.kotlin.*
+ 
+-        fun updateUser(userEntity: UserEntity) {
+-            user = userEntity
+-            filterSauces()
+-        }
++@OptIn(ExperimentalCoroutinesApi::class)
++class MainViewModelSauceFilterTest {
+ 
+-        private fun filterSauces() {
+-            val currentUser = user ?: return
++    @get:Rule
++    val instantTaskRule = InstantTaskExecutorRule()
+ 
+-            val allergens = currentUser.allergens
+-                .split(",")
+-                .map { it.trim().lowercase() }
+-                .filter { it.isNotBlank() }
+-
+-            val vegetarianOnly = currentUser.isVegetarian
+-
+-            filteredSauces = testSauces.filter { sauce ->
+-                val ingredients = sauce.ingredients.lowercase()
+-
+-                val containsAllergen = allergens.any { allergen ->
+-                    allergenMap[allergen]?.any { ingredients.contains(it) } ?: ingredients.contains(allergen)
+-                }
+-
+-                val hasMeat = containsMeat(ingredients)
+-                val isVegetarianOk = !vegetarianOnly || !hasMeat
+-
+-                !containsAllergen && isVegetarianOk
+-            }
+-        }
+-
+-        private fun containsMeat(ingredients: String): Boolean {
+-            val meat = listOf("beef", "pork", "chicken", "bacon", "meat", "ham", "sausage", "anchovies")
+-            return meat.any { ingredients.contains(it) }
+-        }
+-
+-        private val allergenMap = mapOf(
+-            "milk" to listOf("milk", "cheese", "cream", "parmesan", "mozzarella", "cheddar", "pecorino", "gorgonzola", "butter", "dairy", "yogurt"),
+-            "eggs" to listOf("egg", "eggs", "egg yolk", "egg white"),
+-            "nuts" to listOf("almond", "hazelnut", "walnut", "cashew", "nut"),
+-            "fish" to listOf("fish", "anchovies", "salmon", "tuna"),
+-            "soy" to listOf("soy", "soy sauce", "tofu")
+-        )
+-    }
++    private val testDispatcher = StandardTestDispatcher()
++    private lateinit var repository: AppRepository
++    private lateinit var viewModel: MainViewModel
++    private lateinit var application: Application
+ 
+     private val testSauces = listOf(
+-        SauceEntity(id = 1, name = "Tomato", ingredients = "tomato, garlic, olive oil", imageResName = "tomato", isFavorite = false),
+-        SauceEntity(id = 2, name = "Cheesy", ingredients = "milk, parmesan, garlic", imageResName = "cheese", isFavorite = false),
+-        SauceEntity(id = 3, name = "Carbonara", ingredients = "egg, cheese, bacon", imageResName = "carbonara", isFavorite = false),
+-        SauceEntity(id = 4, name = "Bolognese", ingredients = "beef, tomato, onion", imageResName = "bolognese", isFavorite = false),
+-        SauceEntity(id = 5, name = "Pesto", ingredients = "basil, olive oil", imageResName = "pesto", isFavorite = false)
++        SauceEntity(1, "Tomato", "tomato, garlic, olive oil", "tomato"),
++        SauceEntity(2, "Cheesy", "milk, parmesan, garlic", "cheese"),
++        SauceEntity(3, "Carbonara", "egg, cheese, bacon", "carbonara"),
++        SauceEntity(4, "Bolognese", "beef, tomato, onion", "bolognese"),
++        SauceEntity(5, "Pesto", "basil, olive oil", "pesto")
+     )
++
++    @Before
++    fun setup() {
++        Dispatchers.setMain(testDispatcher)
++        application = mock()
++        repository = mock()
++        viewModel = MainViewModel(application, repository)
++
++        // Injectăm direct sosurile de test
++        viewModel::class.java.getDeclaredField("_allSauces").apply {
++            isAccessible = true
++            val mutableLiveData = get(viewModel) as androidx.lifecycle.MutableLiveData<List<SauceEntity>>
++            mutableLiveData.value = testSauces
++        }
++    }
++
++    @After
++    fun tearDown() {
++        Dispatchers.resetMain()
++    }
+ 
+     @Test
+     fun test_filter_by_allergens_only() {
+         val user = UserEntity("ana", "123", allergens = "milk", isVegetarian = false)
+-        val vm = TestSauceViewModel(testSauces)
+-        vm.updateUser(user)
++        viewModel.updateUser(user)
+ 
+-        val result = vm.filteredSauces.map { it.name }
++        val result = viewModel.filteredSauces.value?.map { it.name }
+         assertEquals(listOf("Tomato", "Bolognese", "Pesto"), result)
+     }
+ 
+     @Test
+-    fun test_filter_by_vegan_only() {
++    fun test_filter_by_vegetarian_only() {
+         val user = UserEntity("maria", "pass", allergens = "", isVegetarian = true)
+-        val vm = TestSauceViewModel(testSauces)
+-        vm.updateUser(user)
++        viewModel.updateUser(user)
+ 
+-        val result = vm.filteredSauces.map { it.name }
++        val result = viewModel.filteredSauces.value?.map { it.name }
+         assertEquals(listOf("Tomato", "Cheesy", "Pesto"), result)
+     }
+ 
+     @Test
+     fun test_filter_by_vegetarian_and_allergens() {
+         val user = UserEntity("dan", "abc", allergens = "garlic", isVegetarian = true)
+-        val vm = TestSauceViewModel(testSauces)
+-        vm.updateUser(user)
++        viewModel.updateUser(user)
+ 
+-        val result = vm.filteredSauces.map { it.name }
++        val result = viewModel.filteredSauces.value?.map { it.name }
+         assertEquals(listOf("Pesto"), result)
+     }
+ 
+     @Test
+     fun test_all_sauces_filtered_out() {
+         val user = UserEntity("ella", "xyz", allergens = "tomato, garlic, milk, beef, egg, basil", isVegetarian = false)
+-        val vm = TestSauceViewModel(testSauces)
+-        vm.updateUser(user)
++        viewModel.updateUser(user)
+ 
+-        val result = vm.filteredSauces.map { it.name }
++        val result = viewModel.filteredSauces.value?.map { it.name }
+         assertEquals(emptyList<String>(), result)
+     }
+-}
+\ No newline at end of file
++}
