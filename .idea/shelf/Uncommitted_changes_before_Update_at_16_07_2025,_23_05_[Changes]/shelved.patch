@@ -1,0 +1,207 @@
+Index: app/src/main/java/com/example/pastatimer/viewmodel/MainViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.pastatimer.viewmodel\n\nimport android.app.Application\nimport androidx.lifecycle.*\nimport com.example.pastatimer.PastaTypeEntity\nimport com.example.pastatimer.SauceEntity\nimport com.example.pastatimer.UserEntity\nimport com.example.pastatimer.repository.AppRepository\nimport com.example.pastatimer.repository.IAppRepository\nimport kotlinx.coroutines.CoroutineDispatcher\nimport kotlinx.coroutines.Dispatchers\nimport kotlinx.coroutines.Job\nimport kotlinx.coroutines.delay\nimport kotlinx.coroutines.launch\nimport kotlinx.coroutines.withContext\n\nsealed class AuthResult {\n    object Success : AuthResult()\n    data class Error(val message: String) : AuthResult()\n    object Loading : AuthResult()\n}\n\nclass MainViewModel(\n    application: Application,\n    private val repository: IAppRepository,\n    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO\n) : AndroidViewModel(application) {\n\n    // LiveData pentru tipurile de paste\n    private val _pastaTypes = MutableLiveData<List<PastaTypeEntity>>()\n    val pastaTypes: LiveData<List<PastaTypeEntity>> = _pastaTypes\n\n    // LiveData pentru sosurile favorite ale utilizatorului\n    private val _favoriteSauces = MutableLiveData<List<SauceEntity>>()\n    val favoriteSauces: LiveData<List<SauceEntity>> = _favoriteSauces\n\n    // LiveData pentru utilizatorul curent\n    private val _user = MutableLiveData<UserEntity?>()\n    val user: LiveData<UserEntity?> = _user\n\n    // LiveData pentru toate sosurile\n    private val _allSauces = MutableLiveData<List<SauceEntity>>()\n    val allSauces: LiveData<List<SauceEntity>> = _allSauces\n\n    private val _filteredSauces = MutableLiveData<List<SauceEntity>>()\n    val filteredSauces: LiveData<List<SauceEntity>> = _filteredSauces\n\n    // LiveData for login results\n    private val _authLoginResult = MutableLiveData<AuthResult>()\n    val authLoginResult: LiveData<AuthResult> = _authLoginResult\n\n    // LiveData for signup results\n    private val _authSignUpResult = MutableLiveData<AuthResult>()\n    val authSignUpResult: LiveData<AuthResult> = _authSignUpResult\n\n    // LiveData for user preferences\n    private val _preferencesUpdateResult = MutableLiveData<AuthResult>()\n    val preferencesUpdateResult: LiveData<AuthResult> = _preferencesUpdateResult\n\n    fun login(username: String, password: String) {\n        // validate input\n        if (username.isBlank() || password.isBlank()) {\n            _authLoginResult.value = AuthResult.Error(\"Username and password cannot be empty\")\n            return\n        }\n\n        _authLoginResult.value = AuthResult.Loading\n\n\n        viewModelScope.launch {\n            try {\n                val user = repository.getUserByUsername(username)\n                when {\n                    user == null -> {\n                        _authLoginResult.value = AuthResult.Error(\"Username not found\")\n                    }\n                    user.password != password -> {\n                        _authLoginResult.value = AuthResult.Error(\"Incorrect password\")\n                    }\n                    else -> {\n                        _user.value = user // set current user\n                        _authLoginResult.value = AuthResult.Success\n                    }\n                }\n            } catch (e: Exception) {\n                _authLoginResult.value = AuthResult.Error(\"Login failed: ${e.message}\")\n            }\n        }\n    }\n\n    fun signUp(username: String, password: String, confirmPassword: String) {\n        // validate input\n        when {\n            username.isBlank() -> {\n                _authSignUpResult.value = AuthResult.Error(\"Username cannot be empty\")\n                return\n            }\n            password.isBlank() -> {\n                _authSignUpResult.value = AuthResult.Error(\"Password cannot be empty\")\n                return\n            }\n            password != confirmPassword -> {\n                _authSignUpResult.value = AuthResult.Error(\"Passwords do not match\")\n                return\n            }\n            password.length < 4 -> {\n                _authSignUpResult.value = AuthResult.Error(\"Password must be at least 4 characters\")\n                return\n            }\n        }\n\n        _authSignUpResult.value = AuthResult.Loading\n\n        viewModelScope.launch {\n            try {\n                val existingUser = repository.getUserByUsername(username)\n                if (existingUser != null) {\n                    _authSignUpResult.value = AuthResult.Error(\"Username already exists\")\n                } else {\n                    val newUser = UserEntity(\n                        username = username,\n                        password = password,\n                        isVegetarian = false,\n                        allergens = \"\"\n                    )\n                    repository.insertUser(newUser)\n                    _authSignUpResult.value = AuthResult.Success\n                }\n            } catch (e: Exception) {\n                _authSignUpResult.value = AuthResult.Error(\"Registration failed: ${e.message}\")\n            }\n        }\n    }\n\n    fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String) {\n        viewModelScope.launch {\n            val currentUser = repository.getUserByUsername(username)\n            if (currentUser != null) {\n                // create updated user\n                val updatedUser = currentUser.copy(\n                    isVegetarian = isVegetarian,\n                    allergens = allergens\n                )\n                // insert updated user in database\n                repository.insertUser(updatedUser)\n\n                // update user in viewmodel\n                _user.value = updatedUser\n                filterSauces()\n            }\n        }\n    }\n\n    // Încarcă toate tipurile de paste\n    fun loadPastaTypes() {\n        viewModelScope.launch(Dispatchers.IO) {\n            val types = repository.getAllPastaTypes()\n            _pastaTypes.postValue(types)\n        }\n    }\n\n    // Încarcă sosurile favorite ale utilizatorului\n    fun loadFavorites(username: String) {\n        viewModelScope.launch(Dispatchers.IO) {\n            val favorites = repository.getFavoritesForUser(username)\n            _favoriteSauces.postValue(favorites)\n        }\n    }\n\n    // Încarcă toate sosurile\n    fun loadAllSauces() {\n        viewModelScope.launch(Dispatchers.IO) {\n            val sauces = repository.getAllSauces()\n            _allSauces.postValue(sauces)\n\n            // Apelezi filtrarea pe firul principal\n            withContext(Dispatchers.Main) {\n                filterSauces()\n            }\n        }\n    }\n\n\n    // Adaugă sau elimină un sos din favorite\n//     fun toggleFavorite(username: String, sauce: SauceEntity) {\n//        viewModelScope.launch(Dispatchers.IO) {\n//            val isFavorite = repository.getFavoritesForUser(username).any { it.id == sauce.id }\n//            if (isFavorite) {\n//                repository.removeFavorite(username, sauce.id)\n//            } else {\n//                repository.addFavorite(username, sauce.id)\n//            }\n//            loadFavorites(username)\n//        }\n//    }\n\n    fun toggleFavorite(username: String, sauce: SauceEntity) {\n        viewModelScope.launch(ioDispatcher) {\n            val isFavorite = repository.getFavoritesForUser(username).any { it.id == sauce.id }\n            if (isFavorite) {\n                repository.removeFavorite(username, sauce.id)\n            } else {\n                repository.addFavorite(username, sauce.id)\n            }\n            loadFavorites(username)\n        }\n    }\n\n    // Actualizează utilizatorul curent\n    fun updateUser(userEntity: UserEntity) {\n        _user.value = userEntity\n        filterSauces()\n    }\n\n\n    // Obține un utilizator după username\n    suspend fun getUserByUsername(username: String): UserEntity? {\n        return repository.getUserByUsername(username)\n    }\n\n    // Inserează un nou utilizator\n    fun insertUser(user: UserEntity) {\n        viewModelScope.launch(Dispatchers.IO) {\n            repository.insertUser(user)\n        }\n    }\n\n    // Inserează tipuri de paste\n    fun insertPastaTypes(types: List<PastaTypeEntity>) {\n        viewModelScope.launch(Dispatchers.IO) {\n            repository.insertPastaTypes(types)\n        }\n    }\n\n    // Inserează sosuri\n    fun insertSauces(sauces: List<SauceEntity>) {\n        viewModelScope.launch(Dispatchers.IO) {\n            repository.insertSauces(sauces)\n        }\n    }\n\n    private val _timeLeft = MutableLiveData<Int>()\n    val timeLeft: LiveData<Int> get() = _timeLeft\n\n    private val _status = MutableLiveData<String>()\n    val status: LiveData<String> get() = _status\n\n    private var isRunning = false\n    private var isCancelled = false\n    private var timerJob: Job? = null\n    private var currentPastaName: String? = null\n    private var currentBoilTime: Int? = null\n\n    fun startTimer(boilTime: Int) {\n        if (isRunning) return\n        isRunning = true\n        isCancelled = false\n\n        if (_timeLeft.value == null) {\n            _timeLeft.value = boilTime * 60\n        }\n\n        timerJob = viewModelScope.launch {\n            while (_timeLeft.value!! > 0 && !isCancelled) {\n                delay(1000L)\n                _timeLeft.value = _timeLeft.value!! - 1\n\n                val secondsLeft = _timeLeft.value!!\n                val total = boilTime * 60\n\n                _status.value = when {\n                    secondsLeft > total * 2 / 3 -> \"Undercooked\"\n                    secondsLeft > total / 3 -> \"Al Dente\"\n                    secondsLeft > 0 -> \"Perfect\"\n                    else -> \"Overcooked\"\n                }\n            }\n\n            if (!isCancelled) {\n                _status.value = \"Overcooked\"\n            }\n\n            isRunning = false\n        }\n    }\n\n    fun cancelTimer() {\n        isCancelled = true\n        isRunning = false\n        timerJob?.cancel()\n        timerJob = null\n    }\n\n    fun resetTimer(boilTime: Int) {\n        cancelTimer() // oprește complet coroutinea anterioară\n        _timeLeft.value = boilTime * 60\n        _status.value = \"Starting...\"\n        startTimer(boilTime)\n    }\n\n    fun forceRestartTimer(pastaName: String, boilTime: Int) {\n        if (pastaName == currentPastaName && boilTime == currentBoilTime) {\n            // Același tip de paste – nu resetăm timerul\n            return\n        }\n\n        // Tipul de paste s-a schimbat – resetăm\n        currentPastaName = pastaName\n        currentBoilTime = boilTime\n        cancelTimer()\n        _timeLeft.value = boilTime * 60\n        _status.value = \"Starting...\"\n        startTimer(boilTime)\n    }\n\n    private fun filterSauces() {\n        val currentUser = _user.value ?: return\n        val sauces = _allSauces.value ?: return\n\n        val allergens = currentUser.allergens\n            .split(\",\")\n            .map { it.trim().lowercase() }\n            .filter { it.isNotBlank() }\n\n        val vegetarianOnly = currentUser.isVegetarian\n\n        _filteredSauces.value = sauces.filter { sauce ->\n            val ingredients = sauce.ingredients.lowercase()\n\n            val containsAllergen = allergens.any { allergen ->\n                allergenMap[allergen]?.any { ingredients.contains(it) } ?: ingredients.contains(allergen)\n            }\n\n            val hasMeat = containsMeat(ingredients)\n            val isVegetarianOk = !vegetarianOnly || !hasMeat\n\n            !containsAllergen && isVegetarianOk\n        }\n    }\n\n    private fun containsMeat(ingredients: String): Boolean {\n        val meat = listOf(\"beef\", \"pork\", \"chicken\", \"bacon\", \"meat\", \"ham\", \"sausage\", \"anchovies\", \"guanciale\")\n        return meat.any { ingredients.contains(it) }\n    }\n\n    private val allergenMap = mapOf(\n        \"milk\" to listOf(\"milk\", \"cheese\", \"cream\", \"parmesan\", \"mozzarella\", \"cheddar\", \"pecorino\", \"gorgonzola\", \"butter\", \"dairy\", \"yogurt\"),\n        \"eggs\" to listOf(\"egg\", \"eggs\", \"egg yolk\", \"egg white\"),\n        \"nuts\" to listOf(\"almond\", \"hazelnut\", \"walnut\", \"cashew\", \"nut\"),\n        \"fish\" to listOf(\"fish\", \"anchovies\", \"salmon\", \"tuna\"),\n        \"soy\" to listOf(\"soy\", \"soy sauce\", \"tofu\")\n    )\n\n\n\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/pastatimer/viewmodel/MainViewModel.kt b/app/src/main/java/com/example/pastatimer/viewmodel/MainViewModel.kt
+--- a/app/src/main/java/com/example/pastatimer/viewmodel/MainViewModel.kt	(revision 322c60e4bc979c4d75c60c4e9495c7cf0a9b3280)
++++ b/app/src/main/java/com/example/pastatimer/viewmodel/MainViewModel.kt	(date 1752690498147)
+@@ -5,6 +5,8 @@
+ import com.example.pastatimer.PastaTypeEntity
+ import com.example.pastatimer.SauceEntity
+ import com.example.pastatimer.UserEntity
++import com.example.pastatimer.defaultPastaList
++import com.example.pastatimer.defaultSauceList
+ import com.example.pastatimer.repository.AppRepository
+ import com.example.pastatimer.repository.IAppRepository
+ import kotlinx.coroutines.CoroutineDispatcher
+@@ -26,6 +28,22 @@
+     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+ ) : AndroidViewModel(application) {
+ 
++    fun populateDatabaseIfEmpty() {
++        viewModelScope.launch(ioDispatcher) {
++            val pastaList = repository.getAllPastaTypes()
++            val sauceList = repository.getAllSauces()
++
++            if (pastaList.isEmpty()) {
++                repository.insertPastaTypes(defaultPastaList)
++            }
++
++            if (sauceList.isEmpty()) {
++                repository.insertSauces(defaultSauceList)
++            }
++        }
++    }
++
++
+     // LiveData pentru tipurile de paste
+     private val _pastaTypes = MutableLiveData<List<PastaTypeEntity>>()
+     val pastaTypes: LiveData<List<PastaTypeEntity>> = _pastaTypes
+Index: app/src/main/java/com/example/pastatimer/MainActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.pastatimer\n\nimport android.os.Bundle\nimport androidx.activity.ComponentActivity\nimport androidx.activity.compose.setContent\nimport androidx.activity.enableEdgeToEdge\nimport com.example.pastatimer.navigation.NavGraph\nimport com.example.pastatimer.ui.theme.PastaTimerTheme\nimport androidx.compose.material3.Text\nimport androidx.compose.runtime.Composable\nimport androidx.compose.ui.tooling.preview.Preview\nimport com.example.pastatimer.ui.screens.PastaScreen\nimport com.example.pastatimer.ui.theme.PastaTimerTheme\nimport com.example.pastatimer.PastaTypeEntity\nimport com.example.pastatimer.ui.login.LogInScreen\nimport androidx.lifecycle.lifecycleScope\nimport kotlinx.coroutines.Dispatchers\nimport kotlinx.coroutines.launch\nimport kotlinx.coroutines.withContext\n\n\n/**\n * Main entry point of the PastaTimer application.\n *\n * Initializes the Room database with default pasta and sauce data (if empty),\n * and sets up the Compose UI using [NavGraph] and [PastaTimerTheme].\n */\nclass MainActivity : ComponentActivity() {\n\n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        enableEdgeToEdge()\n\n        val db = AppDatabase.getDatabase(this)\n\n        // Executăm tot într-un coroutine scope\n        lifecycleScope.launch {\n            withContext(Dispatchers.IO) {\n                val pastaDao = db.pastaTypeDao()\n                val sauceDao = db.sauceDao()\n\n                if (pastaDao.getAll().isEmpty()) {\n                    pastaDao.insertAll(defaultPastaList)\n                }\n\n                if (sauceDao.getAll().isEmpty()) {\n                    sauceDao.insertAll(defaultSauceList)\n                }\n            }\n        }\n\n        setContent {\n            PastaTimerTheme {\n                NavGraph()\n            }\n        }\n    }\n}\n\n/**\n * Default list of pasta types used to prepopulate the database if empty.\n */\nval defaultPastaList = listOf(\n    PastaTypeEntity(name = \"Spaghetti\", boilTime = 8, imageResName = \"spaghetti\", flourType = \"durum wheat\"),\n    PastaTypeEntity(name = \"Penne\", boilTime = 10, imageResName = \"penne\", flourType = \"whole wheat\"),\n    PastaTypeEntity(name = \"Fusilli\", boilTime = 9, imageResName = \"fusilli\", flourType = \"gluten-free\"),\n    PastaTypeEntity(name = \"Macaroni\", boilTime = 7, imageResName = \"macaroni\", flourType = \"durum wheat\"),\n    PastaTypeEntity(name = \"Farfalle\", boilTime = 11, imageResName = \"farfalle\", flourType = \"whole wheat\"),\n    PastaTypeEntity(name = \"Fettuccine\", boilTime = 9, imageResName =  \"fettuccine\", flourType = \"durum wheat\"),\n    PastaTypeEntity(name = \"Lasagna\", boilTime = 12, imageResName = \"lasagna\", flourType =  \"durum wheat\"),\n    PastaTypeEntity(name = \"Gnocchi\", boilTime = 6, imageResName = \"gnocchi\", flourType =  \"potatoes\"),\n    PastaTypeEntity(name = \"Oricchette\", boilTime = 10, imageResName = \"oricchette\", flourType = \"whole wheat\"),\n    PastaTypeEntity(name = \"Orzo\", boilTime = 8, imageResName = \"orzo\", flourType = \"gluten-free\"),\n    PastaTypeEntity(name = \"Pappardelle\", boilTime = 11, imageResName = \"pappardelle\", flourType = \"durum wheat\"),\n    PastaTypeEntity(name = \"Cannelloni\", boilTime = 13, imageResName =  \"cannelloni\", flourType = \"whole wheat\") )\n\n/**\n * Default list of sauce types used to prepopulate the database if empty.\n */\nval defaultSauceList = listOf(\n    SauceEntity(name = \"Carbonara\", ingredients = \"eggs, guanciale, parmesan cheese, pecorino, salt, black pepper\",\n        imageResName = \"carbonara\"),\n    SauceEntity(name = \"Marinara\", ingredients = \"tomatoes, garlic, onion, basil, olive oil, oregano, salt, pepper\",\n        imageResName = \"marinara\"),\n    SauceEntity(name = \"Pesto\", ingredients = \"basil, pine nuts, garlic, parmesan cheese, olive oil, lemon juice, salt, pepper\",\n        imageResName = \"pesto\"),\n    SauceEntity(name = \"Alfredo\", ingredients = \"butter, heavy cream, parmesan cheese, garlic, parsley, salt, pepper\",\n        imageResName = \"alfredo\"),\n    SauceEntity(name = \"Bolognese\", ingredients = \"ground beef, tomatoes, onion, garlic, carrots, celery, red wine, oregano, salt, pepper\",\n        imageResName = \"bolognese\"),\n    SauceEntity(name = \"Arrabbiata\", ingredients = \"tomatoes, garlic, chili flakes, basil, olive oil, salt, pepper\",\n        imageResName = \"arrabbiata\"),\n    SauceEntity(name = \"Gorgonzola\", ingredients = \"gorgonzola cheese, cream, butter, garlic, onion, salt, pepper\",\n        imageResName = \"gorgonzola\"),\n    SauceEntity(name = \"Mushroom\", ingredients = \"mushrooms, cream, garlic, butter, onion, parsley, salt, pepper\",\n        imageResName = \"mushroom\"),\n    SauceEntity(name = \"Cheese Sauce\", ingredients = \"cheddar cheese, parmesan cheese, gorgonzola, mozzarella, milk, butter, flour, salt, pepper\",\n        imageResName = \"cheese_sauce\"),\n    SauceEntity(name = \"Romesco\", ingredients = \"roasted red peppers, almonds, tomatoes, garlic, olive oil, vinegar, smoked paprika, salt, pepper\",\n        imageResName = \"romesco\"),\n    SauceEntity(name = \"Puttanesca\", ingredients = \"tomatoes, olives, capers, anchovies, garlic, basil, oregano, olive oil, salt, pepper\",\n        imageResName = \"puttanesca\"),\n    SauceEntity(name = \"Vodka Sauce\", ingredients = \"vodka, tomatoes, cream, onion, garlic, basil, salt, pepper\",\n        imageResName = \"vodka\")\n)\n\n\n@Preview(showBackground = true)\n@Composable\nfun PastaCountPreview() {\n\n    NavGraph();\n}\n\n\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/pastatimer/MainActivity.kt b/app/src/main/java/com/example/pastatimer/MainActivity.kt
+--- a/app/src/main/java/com/example/pastatimer/MainActivity.kt	(revision 322c60e4bc979c4d75c60c4e9495c7cf0a9b3280)
++++ b/app/src/main/java/com/example/pastatimer/MainActivity.kt	(date 1752690824129)
+@@ -31,23 +31,6 @@
+         super.onCreate(savedInstanceState)
+         enableEdgeToEdge()
+ 
+-        val db = AppDatabase.getDatabase(this)
+-
+-        // Executăm tot într-un coroutine scope
+-        lifecycleScope.launch {
+-            withContext(Dispatchers.IO) {
+-                val pastaDao = db.pastaTypeDao()
+-                val sauceDao = db.sauceDao()
+-
+-                if (pastaDao.getAll().isEmpty()) {
+-                    pastaDao.insertAll(defaultPastaList)
+-                }
+-
+-                if (sauceDao.getAll().isEmpty()) {
+-                    sauceDao.insertAll(defaultSauceList)
+-                }
+-            }
+-        }
+ 
+         setContent {
+             PastaTimerTheme {
+@@ -57,52 +40,7 @@
+     }
+ }
+ 
+-/**
+- * Default list of pasta types used to prepopulate the database if empty.
+- */
+-val defaultPastaList = listOf(
+-    PastaTypeEntity(name = "Spaghetti", boilTime = 8, imageResName = "spaghetti", flourType = "durum wheat"),
+-    PastaTypeEntity(name = "Penne", boilTime = 10, imageResName = "penne", flourType = "whole wheat"),
+-    PastaTypeEntity(name = "Fusilli", boilTime = 9, imageResName = "fusilli", flourType = "gluten-free"),
+-    PastaTypeEntity(name = "Macaroni", boilTime = 7, imageResName = "macaroni", flourType = "durum wheat"),
+-    PastaTypeEntity(name = "Farfalle", boilTime = 11, imageResName = "farfalle", flourType = "whole wheat"),
+-    PastaTypeEntity(name = "Fettuccine", boilTime = 9, imageResName =  "fettuccine", flourType = "durum wheat"),
+-    PastaTypeEntity(name = "Lasagna", boilTime = 12, imageResName = "lasagna", flourType =  "durum wheat"),
+-    PastaTypeEntity(name = "Gnocchi", boilTime = 6, imageResName = "gnocchi", flourType =  "potatoes"),
+-    PastaTypeEntity(name = "Oricchette", boilTime = 10, imageResName = "oricchette", flourType = "whole wheat"),
+-    PastaTypeEntity(name = "Orzo", boilTime = 8, imageResName = "orzo", flourType = "gluten-free"),
+-    PastaTypeEntity(name = "Pappardelle", boilTime = 11, imageResName = "pappardelle", flourType = "durum wheat"),
+-    PastaTypeEntity(name = "Cannelloni", boilTime = 13, imageResName =  "cannelloni", flourType = "whole wheat") )
+ 
+-/**
+- * Default list of sauce types used to prepopulate the database if empty.
+- */
+-val defaultSauceList = listOf(
+-    SauceEntity(name = "Carbonara", ingredients = "eggs, guanciale, parmesan cheese, pecorino, salt, black pepper",
+-        imageResName = "carbonara"),
+-    SauceEntity(name = "Marinara", ingredients = "tomatoes, garlic, onion, basil, olive oil, oregano, salt, pepper",
+-        imageResName = "marinara"),
+-    SauceEntity(name = "Pesto", ingredients = "basil, pine nuts, garlic, parmesan cheese, olive oil, lemon juice, salt, pepper",
+-        imageResName = "pesto"),
+-    SauceEntity(name = "Alfredo", ingredients = "butter, heavy cream, parmesan cheese, garlic, parsley, salt, pepper",
+-        imageResName = "alfredo"),
+-    SauceEntity(name = "Bolognese", ingredients = "ground beef, tomatoes, onion, garlic, carrots, celery, red wine, oregano, salt, pepper",
+-        imageResName = "bolognese"),
+-    SauceEntity(name = "Arrabbiata", ingredients = "tomatoes, garlic, chili flakes, basil, olive oil, salt, pepper",
+-        imageResName = "arrabbiata"),
+-    SauceEntity(name = "Gorgonzola", ingredients = "gorgonzola cheese, cream, butter, garlic, onion, salt, pepper",
+-        imageResName = "gorgonzola"),
+-    SauceEntity(name = "Mushroom", ingredients = "mushrooms, cream, garlic, butter, onion, parsley, salt, pepper",
+-        imageResName = "mushroom"),
+-    SauceEntity(name = "Cheese Sauce", ingredients = "cheddar cheese, parmesan cheese, gorgonzola, mozzarella, milk, butter, flour, salt, pepper",
+-        imageResName = "cheese_sauce"),
+-    SauceEntity(name = "Romesco", ingredients = "roasted red peppers, almonds, tomatoes, garlic, olive oil, vinegar, smoked paprika, salt, pepper",
+-        imageResName = "romesco"),
+-    SauceEntity(name = "Puttanesca", ingredients = "tomatoes, olives, capers, anchovies, garlic, basil, oregano, olive oil, salt, pepper",
+-        imageResName = "puttanesca"),
+-    SauceEntity(name = "Vodka Sauce", ingredients = "vodka, tomatoes, cream, onion, garlic, basil, salt, pepper",
+-        imageResName = "vodka")
+-)
+ 
+ 
+ @Preview(showBackground = true)
+Index: app/src/main/java/com/example/pastatimer/navigation/NavGraph.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.pastatimer.navigation\n\nimport android.app.Application\nimport androidx.compose.runtime.*\nimport androidx.compose.ui.platform.LocalContext\nimport androidx.lifecycle.viewmodel.compose.viewModel\nimport androidx.navigation.compose.*\nimport com.example.pastatimer.*\nimport com.example.pastatimer.repository.AppRepository\nimport com.example.pastatimer.ui.login.*\nimport com.example.pastatimer.ui.menu.MainMenu\nimport com.example.pastatimer.ui.screens.PastaScreen\nimport com.example.pastatimer.viewmodel.*\nimport androidx.lifecycle.ViewModelProvider\n\n@Composable\nfun NavGraph() {\n    val navController = rememberNavController()\n    val context = LocalContext.current.applicationContext as Application\n\n    val db = AppDatabase.getDatabase(context)\n    val repository = remember {\n        AppRepository(\n\n            db.userDao(),\n            db.pastaTypeDao(),\n            db.sauceDao(),\n            db.userFavoriteSauceDao()\n        )\n    }\n\n    val mainViewModel: MainViewModel = viewModel(\n        factory = MainViewModelFactory(context, repository)\n    )\n\n    NavHost(navController = navController, startDestination = \"login\") {\n        composable(\"login\") {\n            LogInScreen(navController, mainViewModel)\n        }\n        composable(\"sign up\") {\n            SignUpScreen(navController, mainViewModel)\n        }\n\n        composable(\"allergens/{username}\") { backStackEntry ->\n            val username = backStackEntry.arguments?.getString(\"username\") ?: \"\"\n            PersonaliseSuggestions(navController, username)\n        }\n\n        composable(\"home/{username}\") { backStackEntry ->\n            val username = backStackEntry.arguments?.getString(\"username\") ?: \"\"\n            MainMenu(navController, username)\n        }\n\n        composable(\"pasta/{username}\") { backStackEntry ->\n            val username = backStackEntry.arguments?.getString(\"username\") ?: \"\"\n            PastaScreen(navController = navController, username = username, viewModel = mainViewModel)\n        }\n\n        composable(\"sauce/{username}\") { backStackEntry ->\n            val username = backStackEntry.arguments?.getString(\"username\") ?: \"\"\n            val userState = remember { mutableStateOf<UserEntity?>(null) }\n\n            LaunchedEffect(username) {\n                val user = mainViewModel.getUserByUsername(username)\n                userState.value = user\n                mainViewModel.updateUser(user ?: return@LaunchedEffect)\n            }\n\n            userState.value?.let {\n                SauceScreen(navController = navController, user = it, viewModel = mainViewModel)\n            }\n        }\n\n        composable(\"details/{sauceName}\") { backStackEntry ->\n            val name = backStackEntry.arguments?.getString(\"sauceName\") ?: \"\"\n            val sauce = defaultSauceList.find { it.name == name }\n            sauce?.let {\n                SauceDetailsScreen(sauce = it, navController = navController)\n            }\n        }\n\n        composable(\"timer/{name}/{boilTime}/{username}\") { backStackEntry ->\n            val name = backStackEntry.arguments?.getString(\"name\") ?: \"Unknown\"\n            val boilTime = backStackEntry.arguments?.getString(\"boilTime\")?.toIntOrNull() ?: 0\n            val username = backStackEntry.arguments?.getString(\"username\") ?: \"\"\n\n            TimerScreen(\n                pastaName = name,\n                boilTime = boilTime,\n                username = username,\n                navController = navController,\n                viewModel = mainViewModel\n            )\n        }\n\n        composable(\"favorites/{username}\") { backStackEntry ->\n            val username = backStackEntry.arguments?.getString(\"username\") ?: \"\"\n            FavoriteSauceScreen(navController = navController, username = username, viewModel = mainViewModel)\n        }\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/pastatimer/navigation/NavGraph.kt b/app/src/main/java/com/example/pastatimer/navigation/NavGraph.kt
+--- a/app/src/main/java/com/example/pastatimer/navigation/NavGraph.kt	(revision 322c60e4bc979c4d75c60c4e9495c7cf0a9b3280)
++++ b/app/src/main/java/com/example/pastatimer/navigation/NavGraph.kt	(date 1752690553601)
+@@ -33,6 +33,10 @@
+         factory = MainViewModelFactory(context, repository)
+     )
+ 
++    LaunchedEffect(Unit) {
++        mainViewModel.populateDatabaseIfEmpty()
++    }
++
+     NavHost(navController = navController, startDestination = "login") {
+         composable("login") {
+             LogInScreen(navController, mainViewModel)
+Index: app/src/main/java/com/example/pastatimer/Defaults.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/pastatimer/Defaults.kt b/app/src/main/java/com/example/pastatimer/Defaults.kt
+new file mode 100644
+--- /dev/null	(date 1752690419026)
++++ b/app/src/main/java/com/example/pastatimer/Defaults.kt	(date 1752690419026)
+@@ -0,0 +1,47 @@
++package com.example.pastatimer
++///**
++// * Default list of pasta types used to prepopulate the database if empty.
++// */
++val defaultPastaList = listOf(
++    PastaTypeEntity(name = "Spaghetti", boilTime = 8, imageResName = "spaghetti", flourType = "durum wheat"),
++    PastaTypeEntity(name = "Penne", boilTime = 10, imageResName = "penne", flourType = "whole wheat"),
++    PastaTypeEntity(name = "Fusilli", boilTime = 9, imageResName = "fusilli", flourType = "gluten-free"),
++    PastaTypeEntity(name = "Macaroni", boilTime = 7, imageResName = "macaroni", flourType = "durum wheat"),
++    PastaTypeEntity(name = "Farfalle", boilTime = 11, imageResName = "farfalle", flourType = "whole wheat"),
++    PastaTypeEntity(name = "Fettuccine", boilTime = 9, imageResName =  "fettuccine", flourType = "durum wheat"),
++    PastaTypeEntity(name = "Lasagna", boilTime = 12, imageResName = "lasagna", flourType =  "durum wheat"),
++    PastaTypeEntity(name = "Gnocchi", boilTime = 6, imageResName = "gnocchi", flourType =  "potatoes"),
++    PastaTypeEntity(name = "Oricchette", boilTime = 10, imageResName = "oricchette", flourType = "whole wheat"),
++    PastaTypeEntity(name = "Orzo", boilTime = 8, imageResName = "orzo", flourType = "gluten-free"),
++    PastaTypeEntity(name = "Pappardelle", boilTime = 11, imageResName = "pappardelle", flourType = "durum wheat"),
++    PastaTypeEntity(name = "Cannelloni", boilTime = 13, imageResName =  "cannelloni", flourType = "whole wheat") )
++
++/**
++ * Default list of sauce types used to prepopulate the database if empty.
++ */
++val defaultSauceList = listOf(
++    SauceEntity(name = "Carbonara", ingredients = "eggs, guanciale, parmesan cheese, pecorino, salt, black pepper",
++        imageResName = "carbonara"),
++    SauceEntity(name = "Marinara", ingredients = "tomatoes, garlic, onion, basil, olive oil, oregano, salt, pepper",
++        imageResName = "marinara"),
++    SauceEntity(name = "Pesto", ingredients = "basil, pine nuts, garlic, parmesan cheese, olive oil, lemon juice, salt, pepper",
++        imageResName = "pesto"),
++    SauceEntity(name = "Alfredo", ingredients = "butter, heavy cream, parmesan cheese, garlic, parsley, salt, pepper",
++        imageResName = "alfredo"),
++    SauceEntity(name = "Bolognese", ingredients = "ground beef, tomatoes, onion, garlic, carrots, celery, red wine, oregano, salt, pepper",
++        imageResName = "bolognese"),
++    SauceEntity(name = "Arrabbiata", ingredients = "tomatoes, garlic, chili flakes, basil, olive oil, salt, pepper",
++        imageResName = "arrabbiata"),
++    SauceEntity(name = "Gorgonzola", ingredients = "gorgonzola cheese, cream, butter, garlic, onion, salt, pepper",
++        imageResName = "gorgonzola"),
++    SauceEntity(name = "Mushroom", ingredients = "mushrooms, cream, garlic, butter, onion, parsley, salt, pepper",
++        imageResName = "mushroom"),
++    SauceEntity(name = "Cheese Sauce", ingredients = "cheddar cheese, parmesan cheese, gorgonzola, mozzarella, milk, butter, flour, salt, pepper",
++        imageResName = "cheese_sauce"),
++    SauceEntity(name = "Romesco", ingredients = "roasted red peppers, almonds, tomatoes, garlic, olive oil, vinegar, smoked paprika, salt, pepper",
++        imageResName = "romesco"),
++    SauceEntity(name = "Puttanesca", ingredients = "tomatoes, olives, capers, anchovies, garlic, basil, oregano, olive oil, salt, pepper",
++        imageResName = "puttanesca"),
++    SauceEntity(name = "Vodka Sauce", ingredients = "vodka, tomatoes, cream, onion, garlic, basil, salt, pepper",
++        imageResName = "vodka")
++)
