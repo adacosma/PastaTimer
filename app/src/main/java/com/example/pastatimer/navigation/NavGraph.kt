@@ -21,9 +21,10 @@ fun NavGraph() {
     val db = AppDatabase.getDatabase(context)
     val repository = remember {
         AppRepository(
-            db.sauceDao(),
+
             db.userDao(),
             db.pastaTypeDao(),
+            db.sauceDao(),
             db.userFavoriteSauceDao()
         )
     }
