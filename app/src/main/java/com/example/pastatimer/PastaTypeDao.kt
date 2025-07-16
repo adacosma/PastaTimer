@@ -8,8 +8,8 @@ import androidx.room.Query
 @Dao
 interface PastaTypeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(pastas: List<PastaTypeEntity>)
+    suspend fun insertAll(pastas: List<PastaTypeEntity>)
 
     @Query("SELECT * FROM pasta_types")
-    fun getAll(): List<PastaTypeEntity>
+    suspend fun getAll(): List<PastaTypeEntity>
 }

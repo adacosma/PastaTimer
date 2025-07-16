@@ -8,9 +8,9 @@ import androidx.room.Query
 interface SauceDao {
 
     @Insert
-    fun insertAll(sauces: List<SauceEntity>)
+    suspend fun insertAll(sauces: List<SauceEntity>)
 
     @Query("SELECT * FROM sauces")
-    fun getAll(): List<SauceEntity>
+    suspend fun getAll(): List<SauceEntity>
 
 }

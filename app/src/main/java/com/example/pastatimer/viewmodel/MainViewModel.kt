@@ -6,6 +6,9 @@ import com.example.pastatimer.PastaTypeEntity
 import com.example.pastatimer.SauceEntity
 import com.example.pastatimer.UserEntity
 import com.example.pastatimer.repository.AppRepository
+import com.example.pastatimer.repository.FakeAppRepository
+import com.example.pastatimer.repository.IAppRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -14,7 +17,8 @@ import kotlinx.coroutines.withContext
 
 class MainViewModel(
     application: Application,
-    private val repository: AppRepository
+    private val repository: IAppRepository,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : AndroidViewModel(application) {
 
     // LiveData pentru tipurile de paste
@@ -68,8 +72,20 @@ class MainViewModel(
 
 
     // Adaugă sau elimină un sos din favorite
+//     fun toggleFavorite(username: String, sauce: SauceEntity) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            val isFavorite = repository.getFavoritesForUser(username).any { it.id == sauce.id }
+//            if (isFavorite) {
+//                repository.removeFavorite(username, sauce.id)
+//            } else {
+//                repository.addFavorite(username, sauce.id)
+//            }
+//            loadFavorites(username)
+//        }
+//    }
+
     fun toggleFavorite(username: String, sauce: SauceEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val isFavorite = repository.getFavoritesForUser(username).any { it.id == sauce.id }
             if (isFavorite) {
                 repository.removeFavorite(username, sauce.id)
