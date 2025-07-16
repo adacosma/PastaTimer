@@ -6,7 +6,6 @@ import com.example.pastatimer.PastaTypeEntity
 import com.example.pastatimer.SauceEntity
 import com.example.pastatimer.UserEntity
 import com.example.pastatimer.repository.AppRepository
-import com.example.pastatimer.repository.FakeAppRepository
 import com.example.pastatimer.repository.IAppRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
