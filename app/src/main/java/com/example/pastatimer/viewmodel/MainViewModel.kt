@@ -72,8 +72,8 @@ class MainViewModel(
     val authSignUpResult: LiveData<AuthResult> = _authSignUpResult
 
     // LiveData for user preferences
-    private val _preferencesUpdateResult = MutableLiveData<AuthResult>()
-    val preferencesUpdateResult: LiveData<AuthResult> = _preferencesUpdateResult
+    //private val _preferencesUpdateResult = MutableLiveData<AuthResult>()
+    //val preferencesUpdateResult: LiveData<AuthResult> = _preferencesUpdateResult
 
     fun login(username: String, password: String) {
         // validate input
@@ -150,7 +150,7 @@ class MainViewModel(
         }
     }
 
-    fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String) {
+    /*fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String) {
         viewModelScope.launch {
             val currentUser = repository.getUserByUsername(username)
             if (currentUser != null) {
@@ -167,7 +167,7 @@ class MainViewModel(
                 filterSauces()
             }
         }
-    }
+    }*/
 
     // Încarcă toate tipurile de paste
     fun loadPastaTypes() {
@@ -237,25 +237,25 @@ class MainViewModel(
     }
 
     // Inserează un nou utilizator
-    fun insertUser(user: UserEntity) {
+    /*fun insertUser(user: UserEntity) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.insertUser(user)
         }
-    }
+    }*/
 
     // Inserează tipuri de paste
-    fun insertPastaTypes(types: List<PastaTypeEntity>) {
+    /*fun insertPastaTypes(types: List<PastaTypeEntity>) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.insertPastaTypes(types)
         }
-    }
+    }*/
 
     // Inserează sosuri
-    fun insertSauces(sauces: List<SauceEntity>) {
+    /*fun insertSauces(sauces: List<SauceEntity>) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.insertSauces(sauces)
         }
-    }
+    }*/
 
     private val _timeLeft = MutableLiveData<Int>()
     val timeLeft: LiveData<Int> get() = _timeLeft
