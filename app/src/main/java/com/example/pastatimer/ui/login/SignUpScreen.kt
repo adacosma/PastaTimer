@@ -14,13 +14,13 @@ import com.example.pastatimer.viewmodel.AuthResult
 import kotlinx.coroutines.delay
 
 /**
- * Composable screen that handles user registration following MVVM pattern.
+ * Composable screen that handles user registration, following the MVVM architecture.
  *
- * Uses MainViewModel to manage registration logic, provides real-time feedback,
- * and handles navigation upon successful registration.
+ * The UI reacts to registration results via LiveData exposed by the ViewModel,
+ * offering real-time validation, error messages, and navigation.
  *
- * @param navController The navigation controller used to navigate between screens.
- * @param viewModel The MainViewModel handling authentication logic.
+ * @param navController Used for navigating to the login screen after success.
+ * @param viewModel Shared ViewModel that handles sign-up logic and state.
  */
 @Composable
 fun SignUpScreen(
@@ -31,10 +31,16 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    // observe results by viewmodel instead of accessing the database directly
+    // Observe registration result from ViewModel (LiveData)
     val signUpResult by viewModel.authSignUpResult.observeAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    /**
+     * Effect that listens to ViewModel result changes and reacts accordingly:
+     * - On success: shows confirmation and navigates to login screen.
+     * - On error: shows error message from ViewModel.
+     * - On loading: disables form and shows progress spinner.
+     */
     LaunchedEffect(signUpResult) {
         signUpResult?.let { result ->
             when (result) {

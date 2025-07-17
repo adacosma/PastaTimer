@@ -17,18 +17,29 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Represents authentication result states for login/signup.
+ */
 sealed class AuthResult {
     object Success : AuthResult()
     data class Error(val message: String) : AuthResult()
     object Loading : AuthResult()
 }
 
+/**
+ * MainViewModel contains the core business logic of the PastaTimer app.
+ * It handles authentication, database loading, user preferences, timer logic, and LiveData states.
+ */
 class MainViewModel(
     application: Application,
     private val repository: IAppRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : AndroidViewModel(application) {
 
+    /**
+     * Populates the database only if it's empty.
+     * Uses coroutine with IO dispatcher for Room DB operations (non-blocking).
+     */
     fun populateDatabaseIfEmpty() {
         viewModelScope.launch(ioDispatcher) {
             val pastaList = repository.getAllPastaTypes()
@@ -72,6 +83,10 @@ class MainViewModel(
     private val _authSignUpResult = MutableLiveData<AuthResult>()
     val authSignUpResult: LiveData<AuthResult> = _authSignUpResult
 
+    /**
+     * Handles login logic and updates LiveData with success/error messages.
+     * Uses coroutines to fetch user from Room DB via repository.
+     */
     fun login(username: String, password: String) {
         // validate input
         if (username.isBlank() || password.isBlank()) {
@@ -103,6 +118,9 @@ class MainViewModel(
         }
     }
 
+    /**
+     * Handles registration logic and saves a new user to Room DB using Repository.
+     */
     fun signUp(username: String, password: String, confirmPassword: String) {
         // validate input
         when {
@@ -147,9 +165,11 @@ class MainViewModel(
         }
     }
 
+    /**
+     * Updates user preferences (vegetarian, allergens) and triggers sauce filtering.
+     */
     fun updateUserPreferences(username: String, isVegetarian: Boolean, allergens: String) {
         viewModelScope.launch {
-            // Folosește metoda specifică de update
             repository.updateUserPreferences(username, isVegetarian, allergens)
 
             // Reîncarcă user-ul
@@ -159,7 +179,9 @@ class MainViewModel(
         }
     }
 
-    // Încarcă toate tipurile de paste
+    /**
+     * Loads pasta types from the database (Room -> Repository -> ViewModel).
+     */
     fun loadPastaTypes() {
         viewModelScope.launch(Dispatchers.IO) {
             val types = repository.getAllPastaTypes()
@@ -167,12 +189,11 @@ class MainViewModel(
         }
     }
 
-    // Gaseste sauce dupa nume
     fun getSauceByName(name: String): LiveData<SauceEntity?> {
         return MutableLiveData(allSauces.value?.find { it.name == name })
     }
 
-    // Încarcă sosurile favorite ale utilizatorului
+
     fun loadFavorites(username: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val favorites = repository.getFavoritesForUser(username)
@@ -180,7 +201,9 @@ class MainViewModel(
         }
     }
 
-    // Încarcă toate sosurile
+    /**
+     * Loads all sauces and automatically filters them based on current user preferences.
+     */
     fun loadAllSauces() {
         viewModelScope.launch(Dispatchers.IO) {
             val sauces = repository.getAllSauces()
@@ -250,6 +273,7 @@ class MainViewModel(
         }
     }
 
+    // Timer LiveData and state control
     private val _timeLeft = MutableLiveData<Int>()
     val timeLeft: LiveData<Int> get() = _timeLeft
 
@@ -262,6 +286,7 @@ class MainViewModel(
     private var currentPastaName: String? = null
     private var currentBoilTime: Int? = null
 
+    /** Starts countdown timer using coroutine and updates LiveData for UI */
     fun startTimer(boilTime: Int) {
         if (isRunning) return
         isRunning = true
@@ -295,6 +320,7 @@ class MainViewModel(
         }
     }
 
+    /** Cancels the timer coroutine */
     fun cancelTimer() {
         isCancelled = true
         isRunning = false
@@ -302,6 +328,7 @@ class MainViewModel(
         timerJob = null
     }
 
+    /** Resets and restarts the timer with new time */
     fun resetTimer(boilTime: Int) {
         cancelTimer() // oprește complet coroutinea anterioară
         _timeLeft.value = boilTime * 60
@@ -309,6 +336,7 @@ class MainViewModel(
         startTimer(boilTime)
     }
 
+    /** Forces timer restart only if pasta changed */
     fun forceRestartTimer(pastaName: String, boilTime: Int) {
         if (pastaName == currentPastaName && boilTime == currentBoilTime) {
             // Același tip de paste – nu resetăm timerul
@@ -324,6 +352,7 @@ class MainViewModel(
         startTimer(boilTime)
     }
 
+    /** Filters sauces based on user allergens and vegetarian option */
     private fun filterSauces() {
         val currentUser = _user.value ?: return
         val sauces = _allSauces.value ?: return

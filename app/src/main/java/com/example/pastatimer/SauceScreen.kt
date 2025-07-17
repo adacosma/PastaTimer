@@ -17,6 +17,18 @@ import androidx.navigation.NavController
 import androidx.compose.runtime.livedata.observeAsState
 import com.example.pastatimer.viewmodel.MainViewModel
 
+/**
+ * Composable screen that displays the list of sauces filtered by user preferences (allergens, vegetarian).
+ *
+ * MVVM Architecture:
+ * - Uses LiveData from MainViewModel to observe the list of sauces.
+ * - Data is automatically loaded and filtered based on the logged-in user's preferences.
+ * - Supports pagination and navigation to sauce details screen.
+ *
+ * @param navController Used for screen navigation.
+ * @param username The logged-in user's username.
+ * @param viewModel The shared MainViewModel instance that provides data.
+ */
 @Composable
 fun SauceScreen(
     navController: NavController,

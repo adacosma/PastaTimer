@@ -8,6 +8,12 @@ import com.example.pastatimer.UserEntity
 import com.example.pastatimer.UserFavoriteSauceDao
 import com.example.pastatimer.model.UserFavoriteSauceEntity
 
+/**
+ * AppRepository is the bridge between the ViewModel and Room database DAOs.
+ * It implements the IAppRepository interface to decouple business logic from data access.
+ *
+ * This is a key component of the MVVM architecture pattern.
+ */
 class AppRepository(
     private val userDao: UserDao,
     private val pastaTypeDao: PastaTypeDao,

@@ -24,17 +24,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.pastatimer.viewmodel.MainViewModel
 
+/**
+ * Composable screen that displays the user's favorite sauces
+ * and allows adding new ones from the full list of sauces.
+ */
 @Composable
 fun FavoriteSauceScreen(
     navController: NavController,
     username: String,
     viewModel: MainViewModel = viewModel()
 ) {
+    // Observes LiveData for favorite sauces and all available sauces
     val favoriteSauces by viewModel.favoriteSauces.observeAsState(emptyList())
     val allSauces by viewModel.allSauces.observeAsState(emptyList())
     var showDialog by remember { mutableStateOf(false) }
 
-    // La început, încărcăm datele
+    // Load data when the screen is first shown
     LaunchedEffect(Unit) {
         viewModel.loadFavorites(username)
         viewModel.loadAllSauces()
@@ -112,7 +117,7 @@ fun FavoriteSauceScreen(
             }
         }
 
-        // Dialogul pentru selecție
+        // Dialog to select new favorite sauce
         if (showDialog) {
             SauceSelectionDialog(
                 allSauces = allSauces.filter { sauce ->
@@ -128,6 +133,10 @@ fun FavoriteSauceScreen(
     }
 }
 
+/**
+ * Displays a compact card with sauce image, name, and a favorite icon.
+ * Clicking on the card navigates to the sauce details screen.
+ */
 @Composable
 fun SauceCardCompact(
     sauce: SauceEntity,
@@ -187,6 +196,9 @@ fun SauceCardCompact(
     }
 }
 
+/**
+ * A dialog that lists available sauces for the user to add to favorites.
+ */
 @Composable
 fun SauceSelectionDialog(
     allSauces: List<SauceEntity>,
@@ -215,6 +227,9 @@ fun SauceSelectionDialog(
     )
 }
 
+/**
+ * Utility function that retrieves the drawable resource ID for a sauce image.
+ */
 fun getImageResourceId(context: Context, name: String): Int {
     return context.resources.getIdentifier(name, "drawable", context.packageName)
 }

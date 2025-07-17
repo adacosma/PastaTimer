@@ -19,6 +19,18 @@ import com.example.pastatimer.PastaTypeEntity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.livedata.observeAsState
 
+/**
+ * Composable screen that displays a paginated list of all pasta types available in the database.
+ *
+ * Follows MVVM architecture:
+ * - Gets pasta data from the MainViewModel via LiveData
+ * - Displays each pasta type in a card with image and details
+ * - Allows navigation to a timer screen for the selected pasta
+ *
+ * @param navController The navigation controller used for routing.
+ * @param username The current logged-in user's username.
+ * @param viewModel Shared MainViewModel to fetch and observe pasta data.
+ */
 @Composable
 fun PastaScreen(
     navController: NavController,
@@ -114,6 +126,16 @@ fun PastaScreen(
     }
 }
 
+/**
+ * Composable component that represents a single pasta card in the list.
+ *
+ * Displays the image, name, boil time, and flour type.
+ * Provides a button to start the timer for cooking the pasta.
+ *
+ * @param pasta The pasta entity to display.
+ * @param navController For navigating to the timer screen.
+ * @param username The current logged-in user.
+ */
 @Composable
 fun PastaCard(pasta: PastaTypeEntity, navController: NavController, username: String) {
     val context = LocalContext.current

@@ -14,6 +14,18 @@ import androidx.navigation.NavController
 import com.example.pastatimer.viewmodel.MainViewModel
 import androidx.compose.runtime.livedata.observeAsState
 
+/**
+ * Composable screen that displays detailed information for a given sauce.
+ *
+ * Follows the MVVM architecture:
+ * - Uses LiveData from MainViewModel to load the sauce from Room database
+ * - Automatically updates the UI when data becomes available
+ * - Displays image, name, and list of ingredients
+ *
+ * @param sauceName Name of the sauce to be displayed.
+ * @param navController Navigation controller for screen transitions.
+ * @param viewModel The shared MainViewModel instance.
+ */
 @Composable
 fun SauceDetailsScreen(
     sauceName: String,

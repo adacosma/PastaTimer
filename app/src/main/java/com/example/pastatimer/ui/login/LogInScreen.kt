@@ -23,7 +23,6 @@ import com.example.pastatimer.viewmodel.AuthResult
  * @param navController The navigation controller used for route navigation.
  * @param viewModel The MainViewModel handling authentication logic.
  */
-
 @Composable
 fun LogInScreen(
     navController: NavController,
@@ -32,12 +31,13 @@ fun LogInScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Observă rezultatele din ViewModel în loc să accesezi direct DB
+    // Observes LiveData exposed by MainViewModel (MVVM architecture)
     val loginResult by viewModel.authLoginResult.observeAsState()
     val currentUser by viewModel.user.observeAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Reacts to login result (LiveData change)
     LaunchedEffect(loginResult) {
         loginResult?.let { result ->
             when (result) {

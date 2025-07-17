@@ -12,11 +12,18 @@ import com.example.pastatimer.ui.menu.MainMenu
 import com.example.pastatimer.ui.screens.PastaScreen
 import com.example.pastatimer.viewmodel.*
 
+/**
+ * This composable sets up the entire Navigation Graph for the PastaTimer app.
+ * It initializes the database and ViewModel (MVVM), and defines all the screens.
+ */
 @Composable
 fun NavGraph() {
+    // Create the NavController that manages the back stack of destination
     val navController = rememberNavController()
+    // Get application context to initialize the Room database
     val context = LocalContext.current.applicationContext as Application
 
+    // Instantiate the Room database and repository (Repository layer from MVVM)
     val db = AppDatabase.getDatabase(context)
     val repository = remember {
         AppRepository(
@@ -28,14 +35,17 @@ fun NavGraph() {
         )
     }
 
+    // Create the MainViewModel with a factory to inject dependencies (ViewModel from MVVM)
     val mainViewModel: MainViewModel = viewModel(
         factory = MainViewModelFactory(context, repository)
     )
 
+    // Populate Room database with default pasta/sauce if empty (executed once on launch)
     LaunchedEffect(Unit) {
         mainViewModel.populateDatabaseIfEmpty()
     }
 
+    // Define the navigation graph with all the app's routes
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             LogInScreen(navController, mainViewModel)

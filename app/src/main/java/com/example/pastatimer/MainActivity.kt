@@ -20,10 +20,10 @@ import kotlinx.coroutines.withContext
 
 
 /**
- * Main entry point of the PastaTimer application.
+ * MainActivity is the entry point of the PastaTimer application.
  *
- * Initializes the Room database with default pasta and sauce data (if empty),
- * and sets up the Compose UI using [NavGraph] and [PastaTimerTheme].
+ * It uses Jetpack Compose to build the UI and applies the custom PastaTimerTheme.
+ * The main navigation flow is handled through NavGraph().
  */
 class MainActivity : ComponentActivity() {
 
@@ -42,7 +42,10 @@ class MainActivity : ComponentActivity() {
 
 
 
-
+/**
+ * Preview function for design tools (Android Studio)
+ * Allows a developer to see the NavGraph in preview mode.
+ */
 @Preview(showBackground = true)
 @Composable
 fun PastaCountPreview() {

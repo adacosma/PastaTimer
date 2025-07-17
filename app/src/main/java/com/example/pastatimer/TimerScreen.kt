@@ -24,7 +24,6 @@ import com.example.pastatimer.viewmodel.MainViewModel
  * - Reset the timer
  * - Navigate back
  *
- * The timer logic is handled by a shared [TimerViewModel], which manages LiveData updates.
  *
  * @param pastaName The name of the selected pasta.
  * @param boilTime The boiling time in minutes for the selected pasta.

@@ -12,16 +12,15 @@ import com.example.pastatimer.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
 /**
- * Composable function that renders a screen allowing the user to personalize
- * their dietary preferences and allergens following MVVM pattern.
+ * Composable screen that allows the user to personalize their dietary preferences and allergens.
  *
- * Uses MainViewModel to handle preference updates and user data loading.
+ * Follows the MVVM architecture: communicates with MainViewModel to load user data and persist updates.
+ * Uses LiveData to react to updates and ensures consistency between UI state and stored data.
  *
- * @param username The username of the currently logged-in user.
- * @param navController Navigation controller for screen transitions.
- * @param viewModel MainViewModel for handling preferences logic.
+ * @param username The currently logged-in user.
+ * @param navController Used to navigate back to the home screen after saving.
+ * @param viewModel The shared MainViewModel handling user data (LiveData + Room).
  */
-
 @Composable
 fun PersonaliseSuggestions(
     navController: NavController,
@@ -29,16 +28,20 @@ fun PersonaliseSuggestions(
     viewModel: MainViewModel
 ) {
     val allergensList = listOf("Milk", "Eggs", "Nuts", "Soy", "Fish")
+    // UI state for selected options
     val selectedAllergens = remember { mutableStateListOf<String>() }
     var isVegetarian by remember { mutableStateOf(false) }
 
-    // get current user from viewModel
+    // LiveData observing current user (from Room DB via ViewModel)
     val currentUser by viewModel.user.observeAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // get current preferences
+    /**
+     * First launch: if user not loaded, fetch it from Room and update ViewModel state.
+     * This ensures we don't load from Room again if already in memory.
+     */
     LaunchedEffect(username) {
         if (currentUser?.username != username) {
             val user = viewModel.getUserByUsername(username)
@@ -46,7 +49,11 @@ fun PersonaliseSuggestions(
         }
     }
 
-    // update ui based on current user preferences
+    /**
+     * Once we have the current user, reflect the preferences into the UI state:
+     * - Set vegetarian checkbox
+     * - Pre-select allergen checkboxes based on user's stored preferences
+     */
     LaunchedEffect(currentUser) {
         currentUser?.let { user ->
             isVegetarian = user.isVegetarian
