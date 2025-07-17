@@ -20,23 +20,16 @@ import com.example.pastatimer.viewmodel.MainViewModel
 @Composable
 fun SauceScreen(
     navController: NavController,
-    user: UserEntity,
+    username: String,
     viewModel: MainViewModel
 ) {
-    val context = LocalContext.current
 
-    // Observăm sosurile favorite
-    val favoriteSauces by viewModel.favoriteSauces.observeAsState(emptyList())
-
-    // Observăm sosurile filtrate după preferințe
     val filteredSauces by viewModel.filteredSauces.observeAsState(emptyList())
 
-    // Încărcăm sosuri, user și favorite la lansare
-    LaunchedEffect(Unit) {
-        viewModel.loadAllSauces()
-        viewModel.updateUser(user)
-        viewModel.loadFavorites(user.username)
+    LaunchedEffect(username) {
+        viewModel.loadUserAndSauces(username)
     }
+
 
     // Paginare
     var pageIndex by remember { mutableIntStateOf(0) }
@@ -110,7 +103,7 @@ fun SauceScreen(
         }
 
         Button(
-            onClick = { navController.navigate("home/${user.username}") },
+            onClick = { navController.navigate("home/${username}") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)

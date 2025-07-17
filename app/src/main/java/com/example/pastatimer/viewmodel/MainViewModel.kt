@@ -1,3 +1,4 @@
+
 package com.example.pastatimer.viewmodel
 
 import android.app.Application
@@ -166,6 +167,11 @@ class MainViewModel(
         }
     }
 
+    // Gaseste sauce dupa nume
+    fun getSauceByName(name: String): LiveData<SauceEntity?> {
+        return MutableLiveData(allSauces.value?.find { it.name == name })
+    }
+
     // Încarcă sosurile favorite ale utilizatorului
     fun loadFavorites(username: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -204,6 +210,24 @@ class MainViewModel(
         _user.value = userEntity
         filterSauces()
     }
+
+    fun loadUserAndSauces(username: String) {
+        viewModelScope.launch {
+            val user = repository.getUserByUsername(username) ?: return@launch
+            _user.value = user
+
+            val sauces = withContext(Dispatchers.IO) {
+                repository.getAllSauces()
+            }
+            _allSauces.value = sauces
+
+            // apel corect care folosește alergeni + vegetarian
+            filterSauces()
+
+            loadFavorites(username)
+        }
+    }
+
 
 
     // Obține un utilizator după username

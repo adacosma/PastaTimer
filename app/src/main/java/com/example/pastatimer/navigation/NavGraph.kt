@@ -61,26 +61,16 @@ fun NavGraph() {
 
         composable("sauce/{username}") { backStackEntry ->
             val username = backStackEntry.arguments?.getString("username") ?: ""
-            val userState = remember { mutableStateOf<UserEntity?>(null) }
-
-            LaunchedEffect(username) {
-                val user = mainViewModel.getUserByUsername(username)
-                userState.value = user
-                mainViewModel.updateUser(user ?: return@LaunchedEffect)
-            }
-
-            userState.value?.let {
-                SauceScreen(navController = navController, user = it, viewModel = mainViewModel)
-            }
+            SauceScreen(navController, username, mainViewModel)
         }
+
 
         composable("details/{sauceName}") { backStackEntry ->
             val name = backStackEntry.arguments?.getString("sauceName") ?: ""
-            val sauce = defaultSauceList.find { it.name == name }
-            sauce?.let {
-                SauceDetailsScreen(sauce = it, navController = navController)
-            }
+            SauceDetailsScreen(name, navController, mainViewModel )
         }
+
+
 
         composable("timer/{name}/{boilTime}/{username}") { backStackEntry ->
             val name = backStackEntry.arguments?.getString("name") ?: "Unknown"
